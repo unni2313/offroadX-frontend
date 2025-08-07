@@ -8,6 +8,7 @@ import Login from './login.jsx' // Make sure this file exists
 import Registration from './Registration.jsx' // Make sure this file exists
 import Dashboard from './Dashboard'
 import Events from './Events'
+import UserEvents from './UserEvents'
 import ForgotPassword from './ForgotPassword.jsx'
 import ResetPassword from './ResetPassword.jsx'
 import Home from './Home.jsx'
@@ -35,7 +36,12 @@ createRoot(document.getElementById('root')).render(
           </ProtectedRoute>
         } />
         <Route path="/events" element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="user">
+            <UserEvents />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/events" element={
+          <ProtectedRoute requiredRole="admin">
             <Events />
           </ProtectedRoute>
         } />
