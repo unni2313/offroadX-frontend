@@ -13,6 +13,7 @@ import ForgotPassword from './ForgotPassword.jsx'
 import ResetPassword from './ResetPassword.jsx'
 import Home from './Home.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
+import Profile from './Profile.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -43,6 +44,11 @@ createRoot(document.getElementById('root')).render(
         <Route path="/admin/events" element={
           <ProtectedRoute requiredRole="admin">
             <Events />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         } />
       </Routes>

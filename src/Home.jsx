@@ -150,7 +150,7 @@ function Home() {
                 </div>
                 <div className="hidden md:block">
                   <p className="text-sm font-medium text-white">{user.firstName} {user.secondName}</p>
-                  <p className="text-xs text-gray-400">Explorer</p>
+                  <Link to="/profile" className="text-xs text-gray-400 hover:text-green-400 transition">View Profile</Link>
                 </div>
                 <button
                   onClick={handleLogout}

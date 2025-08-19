@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { FaSignOutAlt, FaUsers, FaCalendarAlt, FaChartLine, FaMapMarkedAlt, FaCog, FaBars } from 'react-icons/fa'
+import { FaSignOutAlt, FaUsers, FaCalendarAlt, FaChartLine, FaMapMarkedAlt, FaCog, FaBars, FaUser } from 'react-icons/fa'
 
 function Dashboard() {
   const [user, setUser] = useState(null)
@@ -78,6 +78,12 @@ function Dashboard() {
               <Link to="/settings" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 text-gray-300 hover:text-white transition">
                 <FaCog />
                 <span>Settings</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/profile" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 text-gray-300 hover:text-white transition">
+                <FaUser />
+                <span>Profile</span>
               </Link>
             </li>
           </ul>
