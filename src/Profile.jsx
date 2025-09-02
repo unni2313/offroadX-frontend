@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   FaMapMarkedAlt, 
@@ -42,6 +42,16 @@ function Profile() {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
+
+  // Photo upload/remove states
+  const fileInputRef = useRef(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+
+  // License upload/remove states
+  const licenseInputRef = useRef(null);
+  const [licenseUploading, setLicenseUploading] = useState(false);
+  const [licenseError, setLicenseError] = useState('');
 
   // Password strength checker
   const getPasswordStrength = (password) => {
@@ -104,6 +114,162 @@ function Profile() {
       setError('Error fetching profile data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Upload profile photo
+  const handleChoosePhoto = () => {
+    setPhotoError('');
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handlePhotoSelected = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Basic client-side validation
+    if (!/(jpe?g|png|webp)$/i.test(file.name)) {
+      setPhotoError('Only JPG, PNG, or WEBP images are allowed');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('File is too large. Max 5MB');
+      return;
+    }
+
+    setPhotoUploading(true);
+    setPhotoError('');
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      const res = await fetch('http://localhost:5000/api/profile/photo', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || 'Failed to upload photo');
+      }
+
+      const updatedUser = await res.json();
+      // Update UI state with new profile data
+      setProfileData(updatedUser);
+      setSuccessMessage('Profile photo updated');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setPhotoError(err.message || 'Failed to upload photo');
+    } finally {
+      setPhotoUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  // Remove profile photo
+  const handleRemovePhoto = async () => {
+    setPhotoError('');
+    setPhotoUploading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/profile/photo', {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || 'Failed to delete photo');
+      }
+
+      const updatedUser = await res.json();
+      setProfileData(updatedUser);
+      setSuccessMessage('Profile photo removed');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setPhotoError(err.message || 'Failed to delete photo');
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  // License: choose file
+  const handleChooseLicense = () => {
+    setLicenseError('');
+    if (licenseInputRef.current) licenseInputRef.current.click();
+  };
+
+  // License: upload selected PDF
+  const handleLicenseSelected = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!/\.pdf$/i.test(file.name)) {
+      setLicenseError('Only PDF files are allowed');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) { // 10MB
+      setLicenseError('File is too large. Max 10MB');
+      return;
+    }
+
+    setLicenseUploading(true);
+    setLicenseError('');
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('license', file);
+
+      const res = await fetch('http://localhost:5000/api/profile/license', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || 'Failed to upload license');
+      }
+
+      const updatedUser = await res.json();
+      setProfileData(updatedUser);
+      setSuccessMessage('Driving license uploaded');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setLicenseError(err.message || 'Failed to upload license');
+    } finally {
+      setLicenseUploading(false);
+      if (licenseInputRef.current) licenseInputRef.current.value = '';
+    }
+  };
+
+  // License: remove
+  const handleRemoveLicense = async () => {
+    setLicenseError('');
+    setLicenseUploading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/profile/license', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || 'Failed to delete license');
+      }
+      const updatedUser = await res.json();
+      setProfileData(updatedUser);
+      setSuccessMessage('Driving license removed');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setLicenseError(err.message || 'Failed to delete license');
+    } finally {
+      setLicenseUploading(false);
     }
   };
 
@@ -355,8 +521,48 @@ function Profile() {
           <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-8 text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-black opacity-10"></div>
             <div className="relative z-10 flex items-center space-x-6">
-              <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <FaUser className="text-4xl text-white" />
+              <div className="relative">
+                {/* Avatar or user icon */}
+                {profileData?.profilePhotoUrl ? (
+                  <img
+                    src={profileData.profilePhotoUrl}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-white/30"
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <FaUser className="text-4xl text-white" />
+                  </div>
+                )}
+
+                {/* Photo actions */}
+                <div className="absolute -bottom-2 -right-2 flex space-x-2">
+                  <button
+                    onClick={handleChoosePhoto}
+                    disabled={photoUploading}
+                    className="bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white text-xs px-3 py-1 rounded-full shadow"
+                  >
+                    {photoUploading ? 'Uploading...' : 'Change'}
+                  </button>
+                  {profileData?.profilePhotoUrl && (
+                    <button
+                      onClick={handleRemovePhoto}
+                      disabled={photoUploading}
+                      className="bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white text-xs px-3 py-1 rounded-full shadow"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handlePhotoSelected}
+                  className="hidden"
+                />
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold mb-2">
@@ -376,11 +582,94 @@ function Profile() {
                     </span>
                   </span>
                 </div>
+                {photoError && (
+                  <div className="mt-2 text-sm text-red-200 bg-red-900/40 border border-red-700 px-3 py-2 rounded">
+                    {photoError}
+                  </div>
+                )}
               </div>
             </div>
             {/* Decorative Elements */}
             <div className="absolute top-4 right-4 text-6xl opacity-20">👤</div>
           </div>
+        </div>
+
+        {/* Driving License (PDF) */}
+        <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 mb-8">
+          <h3 className="text-lg font-semibold text-white mb-3 flex items-center space-x-2">
+            <FaShieldAlt className="text-green-400" />
+            <span>Driving License (PDF)</span>
+          </h3>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="text-sm text-gray-300">
+              {profileData?.licenseDocUrl ? (
+                <div className="space-y-1">
+                  <p className="text-green-300">License on file</p>
+                  <a
+                    href="#"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      try {
+                        const token = localStorage.getItem('token');
+                        // Prefer the direct Cloudinary asset URL stored on the profile
+                        const directUrl = profileData?.licenseDocUrl;
+                        if (!directUrl) throw new Error('No license URL on file');
+                        // Force download with a friendly filename using Cloudinary flag transformation
+                        // Insert fl_attachment:licence after /raw/upload/
+                        const attachmentUrl = directUrl.includes('/raw/upload/')
+                          ? directUrl.replace('/raw/upload/', '/raw/upload/fl_attachment:licence/')
+                          : directUrl;
+                        const a = document.createElement('a');
+                        a.href = attachmentUrl;
+                        a.target = '_blank';
+                        a.rel = 'noopener';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                      } catch (err) {
+                        setLicenseError(err.message || 'Failed to get download URL');
+                      }
+                    }}
+                    className="text-blue-400 hover:underline"
+                  >
+                    Download current license
+                  </a>
+                </div>
+              ) : (
+                <p className="text-gray-400">No license uploaded</p>
+              )}
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleChooseLicense}
+                disabled={licenseUploading}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white text-sm px-4 py-2 rounded-lg"
+              >
+                {licenseUploading ? 'Uploading...' : (profileData?.licenseDocUrl ? 'Replace PDF' : 'Upload PDF')}
+              </button>
+              {profileData?.licenseDocUrl && (
+                <button
+                  onClick={handleRemoveLicense}
+                  disabled={licenseUploading}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white text-sm px-4 py-2 rounded-lg"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+          {licenseError && (
+            <div className="mt-3 text-sm text-red-200 bg-red-900/40 border border-red-700 px-3 py-2 rounded">
+              {licenseError}
+            </div>
+          )}
+          <input
+            ref={licenseInputRef}
+            type="file"
+            accept="application/pdf"
+            onChange={handleLicenseSelected}
+            className="hidden"
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

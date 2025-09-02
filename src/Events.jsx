@@ -38,6 +38,67 @@ function Events() {
     duration: '',
     description: ''
   })
+  
+  // View/Edit modal state
+  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [showViewModal, setShowViewModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editData, setEditData] = useState(null)
+
+  const openView = (event) => {
+    setSelectedEvent(event)
+    setShowViewModal(true)
+  }
+
+  const openEdit = (event) => {
+    setSelectedEvent(event)
+    setEditData({
+      name: event.name || '',
+      date: event.date || '',
+      time: event.time || '',
+      location: event.location || '',
+      maxParticipants: event.maxParticipants || '',
+      difficulty: event.difficulty || 'Easy',
+      duration: event.duration || '',
+      description: event.description || ''
+    })
+    setShowEditModal(true)
+  }
+
+  const closeModals = () => {
+    setShowViewModal(false)
+    setShowEditModal(false)
+    setSelectedEvent(null)
+    setEditData(null)
+  }
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target
+    setEditData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const submitEdit = async (e) => {
+    e.preventDefault()
+    try {
+      const response = await fetch(`http://localhost:5000/api/events/${selectedEvent._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(editData),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Failed to update event')
+      showSuccess('Updated!', 'Event updated successfully.')
+      closeModals()
+      fetchEvents()
+    } catch (err) {
+      console.error(err)
+      showError('Error', err.message || 'Failed to update event')
+    }
+  }
+
   const navigate = useNavigate()
 
   // Fetch events from API
@@ -259,9 +320,9 @@ const handleSubmit = async (e) => {
             {user && (
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold">
-                  {user.name.charAt(0)}
+                  {user.firstName.charAt(0)}
                 </div>
-                <span className="hidden md:inline">{user.name}</span>
+                <span className="hidden md:inline">{user.firstName}</span>
               </div>
             )}
             <button
@@ -308,6 +369,7 @@ const handleSubmit = async (e) => {
                     <FaTimes />
                   </button>
                 </div>
+
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Event Name */}
@@ -510,6 +572,192 @@ const handleSubmit = async (e) => {
             </div>
           )}
 
+          {/* View Event Modal */}
+          {showViewModal && selectedEvent && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-white">Event Details</h2>
+                  <button onClick={closeModals} className="text-gray-400 hover:text-white text-xl">
+                    <FaTimes />
+                  </button>
+                </div>
+
+                <div className="space-y-4 text-gray-300">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-white">{selectedEvent.name}</h3>
+                    <div className="flex space-x-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(selectedEvent.status)}`}>
+                        {selectedEvent.status?.charAt(0).toUpperCase() + selectedEvent.status?.slice(1)}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyBadge(selectedEvent.difficulty)}`}>
+                        {selectedEvent.difficulty}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center">
+                      <FaCalendarAlt className="mr-2 text-green-500" />
+                      <span>{selectedEvent.date} at {selectedEvent.time}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <FaMapMarkedAlt className="mr-2 text-green-500" />
+                      <span>{selectedEvent.location}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <FaUsers className="mr-2 text-green-500" />
+                      <span>{selectedEvent.participants}/{selectedEvent.maxParticipants} participants</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Duration</div>
+                    <div>{selectedEvent.duration || '-'}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Description</div>
+                    <p className="whitespace-pre-wrap">{selectedEvent.description || '-'}</p>
+                  </div>
+
+                  <div className="mt-6 flex justify-end">
+                    <button onClick={closeModals} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded">
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Event Modal */}
+          {showEditModal && editData && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-white">Edit Event</h2>
+                  <button onClick={closeModals} className="text-gray-400 hover:text-white text-xl">
+                    <FaTimes />
+                  </button>
+                </div>
+
+                <form onSubmit={submitEdit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Event Name *</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={editData.name}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Date *</label>
+                      <input
+                        type="date"
+                        name="date"
+                        value={editData.date}
+                        onChange={handleEditChange}
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Time *</label>
+                      <input
+                        type="time"
+                        name="time"
+                        value={editData.time}
+                        onChange={handleEditChange}
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Location *</label>
+                    <input
+                      type="text"
+                      name="location"
+                      value={editData.location}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Max Participants *</label>
+                      <input
+                        type="number"
+                        name="maxParticipants"
+                        value={editData.maxParticipants}
+                        onChange={handleEditChange}
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Difficulty *</label>
+                      <select
+                        name="difficulty"
+                        value={editData.difficulty}
+                        onChange={handleEditChange}
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                        required
+                      >
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Duration</label>
+                    <input
+                      type="text"
+                      name="duration"
+                      value={editData.duration}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                      placeholder="e.g., 3h 30m"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                    <textarea
+                      name="description"
+                      value={editData.description}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                      rows="4"
+                      placeholder="Event description..."
+                    />
+                  </div>
+
+                  <div className="flex justify-end space-x-2">
+                    <button type="button" onClick={closeModals} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded">
+                      Cancel
+                    </button>
+                    <button type="submit" className="px-4 py-2 bg-green-600 hover:bg-green-500 rounded text-white flex items-center space-x-2">
+                      <FaSave />
+                      <span>Save</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
           {/* Events Grid */}
           {!loading && !error && (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -550,10 +798,16 @@ const handleSubmit = async (e) => {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-400">{event.duration}</span>
                     <div className="flex space-x-2">
-                      <button className="p-2 text-blue-500 hover:text-blue-400 hover:bg-gray-700 rounded">
+                      <button
+                        onClick={() => openView(event)}
+                        className="p-2 text-blue-500 hover:text-blue-400 hover:bg-gray-700 rounded"
+                      >
                         <FaEye />
                       </button>
-                      <button className="p-2 text-yellow-500 hover:text-yellow-400 hover:bg-gray-700 rounded">
+                      <button
+                        onClick={() => openEdit(event)}
+                        className="p-2 text-yellow-500 hover:text-yellow-400 hover:bg-gray-700 rounded"
+                      >
                         <FaEdit />
                       </button>
                       <button

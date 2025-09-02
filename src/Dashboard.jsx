@@ -57,7 +57,7 @@ function Dashboard() {
               </Link>
             </li>
             <li>
-              <Link to="/events" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 text-gray-300 hover:text-white transition">
+              <Link to="/admin/events" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 text-gray-300 hover:text-white transition">
                 <FaCalendarAlt />
                 <span>Events</span>
               </Link>
@@ -105,9 +105,9 @@ function Dashboard() {
             {user && (
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold">
-                  {user.name.charAt(0)}
+                  {user.firstName.charAt(0)}
                 </div>
-                <span className="hidden md:inline">{user.name}</span>
+                <span className="hidden md:inline">{user.firstName}</span>
               </div>
             )}
             <button
