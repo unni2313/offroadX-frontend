@@ -6,7 +6,7 @@ import './index.css'
 import App from './App.jsx'
 import Login from './login.jsx' // Make sure this file exists
 import Registration from './Registration.jsx' // Make sure this file exists
-import Dashboard from './Dashboard'
+import Dashboard, { DashboardOverview } from './Dashboard'
 import Events from './Events'
 import UserEvents from './UserEvents'
 import ForgotPassword from './ForgotPassword.jsx'
@@ -14,6 +14,8 @@ import ResetPassword from './ResetPassword.jsx'
 import Home from './Home.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
 import Profile from './Profile.jsx'
+import Participants from './Participants.jsx'
+import AdminUserProfile from './AdminUserProfile.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -31,21 +33,26 @@ createRoot(document.getElementById('root')).render(
             <Home />
           </ProtectedRoute>
         } />
+
+        {/* Admin Dashboard with nested routes */}
         <Route path="/dashboard" element={
           <ProtectedRoute requiredRole="admin">
             <Dashboard />
           </ProtectedRoute>
-        } />
+        }>
+          <Route index element={<DashboardOverview />} />
+          <Route path="events" element={<Events />} />
+          <Route path="participants" element={<Participants />} />
+          <Route path="users/:id" element={<AdminUserProfile />} />
+        </Route>
+
         <Route path="/events" element={
           <ProtectedRoute requiredRole="user">
             <UserEvents />
           </ProtectedRoute>
         } />
-        <Route path="/admin/events" element={
-          <ProtectedRoute requiredRole="admin">
-            <Events />
-          </ProtectedRoute>
-        } />
+
+        {/* Keep profile global */}
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />

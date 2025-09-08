@@ -23,6 +23,7 @@ import {
   FaSave,
   FaTimes
 } from 'react-icons/fa';
+import VehiclesSection from './VehiclesSection';
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -675,6 +676,8 @@ function Profile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Personal Information */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Vehicles */}
+            <VehiclesSection />
             {/* Basic Information */}
             <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
               <div className="p-6 border-b border-gray-700">

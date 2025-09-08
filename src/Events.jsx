@@ -262,82 +262,12 @@ const handleSubmit = async (e) => {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex">
       {/* Sidebar */}
-      <div className={`bg-gray-800 w-64 fixed h-full transition-all duration-300 ${sidebarOpen ? 'ml-0' : '-ml-64'} z-10`}>
-        <div className="p-4 flex items-center space-x-2 border-b border-gray-700 h-16">
-          <FaMapMarkedAlt className="text-green-500 text-2xl" />
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600">
-            OffroadX
-          </span>
-        </div>
-        <nav className="p-4">
-          <ul className="space-y-2">
-            <li>
-              <Link to="/dashboard" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                <FaChartLine />
-                <span>Dashboard</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/events" className="flex items-center space-x-3 p-3 rounded-lg bg-gray-700 text-white">
-                <FaCalendarAlt />
-                <span>Events</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/participants" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                <FaUsers />
-                <span>Participants</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/routes" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                <FaMapMarkedAlt />
-                <span>Routes</span>
-              </Link>
-            </li>
-            <li>
-              <Link to="/settings" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-700 text-gray-300 hover:text-white transition">
-                <FaCog />
-                <span>Settings</span>
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      </div>
+     
 
       {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
         {/* Header */}
-        <header className="bg-gray-800 border-b border-gray-700 h-16 flex items-center justify-between px-6 fixed w-full z-10">
-          <button 
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-400 hover:text-white"
-          >
-            <FaBars className="text-xl" />
-          </button>
-          
-          <div className="flex items-center space-x-4">
-            {user && (
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white font-bold">
-                  {user.firstName.charAt(0)}
-                </div>
-                <span className="hidden md:inline">{user.firstName}</span>
-              </div>
-            )}
-            <button
-              onClick={() => {
-                localStorage.removeItem('token')
-                localStorage.removeItem('user')
-                navigate('/login')
-              }}
-              className="flex items-center space-x-2 text-gray-300 hover:text-white"
-            >
-              <FaSignOutAlt />
-              <span className="hidden md:inline">Logout</span>
-            </button>
-          </div>
-        </header>
+      
 
         {/* Events Content */}
         <main className="p-6 pt-24">
