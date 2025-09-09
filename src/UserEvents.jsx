@@ -40,6 +40,15 @@ function UserEvents() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEventDetails, setShowEventDetails] = useState(false);
   const [userParticipations, setUserParticipations] = useState([]);
+  const [userRegistrations, setUserRegistrations] = useState([]);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const [registrationFormData, setRegistrationFormData] = useState({
+    emergencyContact: { name: '', phone: '', relationship: '' },
+    medicalConditions: '',
+    experienceLevel: 'beginner',
+    additionalNotes: '',
+    vehicles: []
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,6 +57,7 @@ function UserEvents() {
       setUser(JSON.parse(userData));
       fetchEvents();
       fetchUserParticipations();
+      fetchUserRegistrations();
     } else {
       navigate('/login');
     }
@@ -96,84 +106,116 @@ function UserEvents() {
     }
   };
 
-  const handleJoinEvent = async (eventId) => {
+  const fetchUserRegistrations = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch('http://localhost:5000/api/events/user/registrations', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserRegistrations(data.registrations || []);
+      }
+    } catch (error) {
+      console.error('Error fetching user registrations:', error);
+    }
+  };
+
+  const handleRegisterEvent = (eventId) => {
     const event = events.find(e => e._id === eventId);
     
     if (!event) return;
 
-    // Check if user is already registered
-    if (userParticipations.includes(eventId)) {
-      showWarning('Already Registered', 'You are already registered for this event.');
-      return;
+    // Check if user already has a registration for this event
+    const existingRegistration = userRegistrations.find(reg => reg.event._id === eventId);
+    if (existingRegistration) {
+      const statusMessages = {
+        pending: 'Your registration is pending admin approval.',
+        approved: 'You are already approved for this event.',
+        rejected: 'Your registration was rejected. You can apply again.'
+      };
+      
+      if (existingRegistration.status !== 'rejected') {
+        showWarning('Already Registered', statusMessages[existingRegistration.status]);
+        return;
+      }
     }
 
-    // Check if event is full
+    // Check if event is full (for approved participants)
     if (event.participants >= event.maxParticipants) {
       showWarning('Event Full', 'This event has reached maximum capacity.');
       return;
     }
 
-    const result = await showConfirm(
-      'Join Event',
-      `Are you sure you want to join "${event.name}"?`,
-      'Yes, join!',
-      'Cancel'
-    );
+    setSelectedEvent(event);
+    setShowRegistrationForm(true);
+  };
 
-    if (result.isConfirmed) {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5000/api/events/${eventId}/join`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+  const handleRegistrationFormSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedEvent) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/events/${selectedEvent._id}/register`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(registrationFormData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Refresh registrations
+        await fetchUserRegistrations();
+        
+        // Reset form
+        setRegistrationFormData({
+          emergencyContact: { name: '', phone: '', relationship: '' },
+          medicalConditions: '',
+          experienceLevel: 'beginner',
+          additionalNotes: '',
+          vehicles: []
         });
+        setShowRegistrationForm(false);
+        setSelectedEvent(null);
 
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Update local state
-          const updatedParticipations = [...userParticipations, eventId];
-          setUserParticipations(updatedParticipations);
-          
-          // Update the event's participant count locally
-          const updatedEvents = events.map(e => 
-            e._id === eventId 
-              ? { ...e, participants: data.event.participants }
-              : e
-          );
-          setEvents(updatedEvents);
-
-          showSuccess('Success!', 'You have successfully joined the event!');
-        } else {
-          const errorData = await response.json();
-          showError('Error!', errorData.error || 'Failed to join event. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error joining event:', error);
-        showError('Error!', 'Failed to join event. Please try again.');
+        showSuccess('Registration Submitted!', 'Your registration has been submitted and is awaiting admin approval.');
+      } else {
+        const errorData = await response.json();
+        showError('Error!', errorData.error || 'Failed to submit registration. Please try again.');
       }
+    } catch (error) {
+      console.error('Error submitting registration:', error);
+      showError('Error!', 'Failed to submit registration. Please try again.');
     }
   };
 
-  const handleLeaveEvent = async (eventId) => {
+  const handleCancelRegistration = async (eventId) => {
     const event = events.find(e => e._id === eventId);
     
     if (!event) return;
 
     const result = await showConfirm(
-      'Leave Event',
-      `Are you sure you want to leave "${event.name}"?`,
-      'Yes, leave',
-      'Cancel'
+      'Cancel Registration',
+      `Are you sure you want to cancel your registration for "${event.name}"?`,
+      'Yes, cancel',
+      'Keep registration'
     );
 
     if (result.isConfirmed) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5000/api/events/${eventId}/leave`, {
+        const response = await fetch(`http://localhost:5000/api/events/${eventId}/cancel-registration`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -182,28 +224,19 @@ function UserEvents() {
         });
 
         if (response.ok) {
-          const data = await response.json();
-          
-          // Update local state
-          const updatedParticipations = userParticipations.filter(id => id !== eventId);
-          setUserParticipations(updatedParticipations);
+          // Refresh data
+          await fetchUserRegistrations();
+          await fetchUserParticipations();
+          await fetchEvents();
 
-          // Update the event's participant count locally
-          const updatedEvents = events.map(e => 
-            e._id === eventId 
-              ? { ...e, participants: data.event.participants }
-              : e
-          );
-          setEvents(updatedEvents);
-
-          showSuccess('Success!', 'You have left the event.');
+          showSuccess('Success!', 'Your registration has been cancelled.');
         } else {
           const errorData = await response.json();
-          showError('Error!', errorData.error || 'Failed to leave event. Please try again.');
+          showError('Error!', errorData.error || 'Failed to cancel registration. Please try again.');
         }
       } catch (error) {
-        console.error('Error leaving event:', error);
-        showError('Error!', 'Failed to leave event. Please try again.');
+        console.error('Error cancelling registration:', error);
+        showError('Error!', 'Failed to cancel registration. Please try again.');
       }
     }
   };
@@ -217,6 +250,47 @@ function UserEvents() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
+  };
+
+  const getRegistrationStatus = (eventId) => {
+    const registration = userRegistrations.find(reg => reg.event._id === eventId);
+    return registration ? registration.status : null;
+  };
+
+  const getRegistrationStatusBadge = (status) => {
+    const badges = {
+      pending: 'bg-yellow-600 text-white',
+      approved: 'bg-green-600 text-white',
+      rejected: 'bg-red-600 text-white'
+    };
+    return badges[status] || 'bg-gray-600 text-white';
+  };
+
+  const getRegistrationStatusIcon = (status) => {
+    const icons = {
+      pending: <FaClock className="inline mr-1" />,
+      approved: <FaCheckCircle className="inline mr-1" />,
+      rejected: <FaTimesCircle className="inline mr-1" />
+    };
+    return icons[status] || null;
+  };
+
+  const handleRegistrationFormChange = (field, value) => {
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setRegistrationFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
+      }));
+    } else {
+      setRegistrationFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const filteredEvents = events.filter(event => {
@@ -426,7 +500,11 @@ function UserEvents() {
         {!loading && !error && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((event) => {
-              const isJoined = userParticipations.includes(event._id);
+              const registrationStatus = getRegistrationStatus(event._id);
+              const isApproved = registrationStatus === 'approved';
+              const isPending = registrationStatus === 'pending';
+              const isRejected = registrationStatus === 'rejected';
+              const hasRegistration = registrationStatus !== null;
               const isFull = event.participants >= event.maxParticipants;
               const isUpcoming = event.status === 'upcoming';
               
@@ -491,6 +569,18 @@ function UserEvents() {
                       </div>
                     </div>
 
+                    {/* Registration Status Badge */}
+                    {hasRegistration && (
+                      <div className="mb-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getRegistrationStatusBadge(registrationStatus)}`}>
+                          {getRegistrationStatusIcon(registrationStatus)}
+                          {registrationStatus === 'pending' && 'Pending Approval'}
+                          {registrationStatus === 'approved' && 'Approved'}
+                          {registrationStatus === 'rejected' && 'Rejected'}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Action Buttons */}
                     <div className="flex justify-between items-center">
                       <button
@@ -502,17 +592,17 @@ function UserEvents() {
                       </button>
                       
                       <div className="flex space-x-2">
-                        {isJoined ? (
+                        {hasRegistration && !isRejected ? (
                           <button
-                            onClick={() => handleLeaveEvent(event._id)}
+                            onClick={() => handleCancelRegistration(event._id)}
                             className="flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
                           >
                             <FaTimesCircle />
-                            <span>Leave</span>
+                            <span>Cancel</span>
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleJoinEvent(event._id)}
+                            onClick={() => handleRegisterEvent(event._id)}
                             disabled={!isUpcoming || isFull}
                             className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-sm font-medium transition ${
                               !isUpcoming || isFull
@@ -521,14 +611,14 @@ function UserEvents() {
                             }`}
                           >
                             <FaUserPlus />
-                            <span>{isFull ? 'Full' : 'Join'}</span>
+                            <span>{isFull ? 'Full' : 'Register'}</span>
                           </button>
                         )}
                       </div>
                     </div>
 
                     {/* Joined Indicator */}
-                    {isJoined && (
+                    {isApproved && (
                       <div className="mt-3 flex items-center justify-center space-x-2 bg-green-900/30 border border-green-500/30 rounded-lg py-2">
                         <FaCheckCircle className="text-green-400" />
                         <span className="text-green-400 text-sm font-medium">You're registered!</span>
@@ -649,43 +739,194 @@ function UserEvents() {
                 </button>
                 
                 <div className="flex space-x-3">
-                  {userParticipations.includes(selectedEvent._id) ? (
-                    <button
-                      onClick={() => {
-                        handleLeaveEvent(selectedEvent._id);
-                        setShowEventDetails(false);
-                      }}
-                      className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition"
-                    >
-                      <FaTimesCircle />
-                      <span>Leave Event</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        handleJoinEvent(selectedEvent._id);
-                        setShowEventDetails(false);
-                      }}
-                      disabled={selectedEvent.status !== 'upcoming' || selectedEvent.participants >= selectedEvent.maxParticipants}
-                      className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition ${
-                        selectedEvent.status !== 'upcoming' || selectedEvent.participants >= selectedEvent.maxParticipants
-                          ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                          : 'bg-green-600 hover:bg-green-700 text-white'
-                      }`}
-                    >
-                      <FaUserPlus />
-                      <span>
-                        {selectedEvent.participants >= selectedEvent.maxParticipants 
-                          ? 'Event Full' 
-                          : selectedEvent.status !== 'upcoming' 
-                            ? 'Event Closed' 
-                            : 'Join Event'
-                        }
-                      </span>
-                    </button>
-                  )}
+                  {(() => {
+                    const modalRegistrationStatus = getRegistrationStatus(selectedEvent._id);
+                    const modalHasRegistration = modalRegistrationStatus !== null;
+                    const modalIsRejected = modalRegistrationStatus === 'rejected';
+                    
+                    if (modalHasRegistration && !modalIsRejected) {
+                      return (
+                        <button
+                          onClick={() => {
+                            handleCancelRegistration(selectedEvent._id);
+                            setShowEventDetails(false);
+                          }}
+                          className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition"
+                        >
+                          <FaTimesCircle />
+                          <span>Cancel Registration</span>
+                        </button>
+                      );
+                    } else {
+                      return (
+                        <button
+                          onClick={() => {
+                            setShowEventDetails(false);
+                            handleRegisterEvent(selectedEvent._id);
+                          }}
+                          disabled={selectedEvent.status !== 'upcoming' || selectedEvent.participants >= selectedEvent.maxParticipants}
+                          className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition ${
+                            selectedEvent.status !== 'upcoming' || selectedEvent.participants >= selectedEvent.maxParticipants
+                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                              : 'bg-green-600 hover:bg-green-700 text-white'
+                          }`}
+                        >
+                          <FaUserPlus />
+                          <span>
+                            {selectedEvent.participants >= selectedEvent.maxParticipants 
+                              ? 'Event Full' 
+                              : selectedEvent.status !== 'upcoming' 
+                                ? 'Event Closed' 
+                                : 'Register'
+                            }
+                          </span>
+                        </button>
+                      );
+                    }
+                  })()}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Registration Form Modal */}
+      {showRegistrationForm && selectedEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">Register for Event</h2>
+                  <p className="text-gray-300">{selectedEvent.name}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowRegistrationForm(false);
+                    setSelectedEvent(null);
+                  }}
+                  className="text-gray-400 hover:text-white text-xl"
+                >
+                  <FaTimesCircle />
+                </button>
+              </div>
+
+              {/* Registration Form */}
+              <form onSubmit={handleRegistrationFormSubmit} className="space-y-6">
+                {/* Emergency Contact */}
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4">Emergency Contact</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={registrationFormData.emergencyContact.name}
+                        onChange={(e) => handleRegistrationFormChange('emergencyContact.name', e.target.value)}
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Phone *
+                      </label>
+                      <input
+                        type="tel"
+                        value={registrationFormData.emergencyContact.phone}
+                        onChange={(e) => handleRegistrationFormChange('emergencyContact.phone', e.target.value)}
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                        required
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Relationship *
+                      </label>
+                      <input
+                        type="text"
+                        value={registrationFormData.emergencyContact.relationship}
+                        onChange={(e) => handleRegistrationFormChange('emergencyContact.relationship', e.target.value)}
+                        placeholder="e.g., Spouse, Parent, Friend"
+                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Experience Level */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Experience Level *
+                  </label>
+                  <select
+                    value={registrationFormData.experienceLevel}
+                    onChange={(e) => handleRegistrationFormChange('experienceLevel', e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                    required
+                  >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+
+                {/* Medical Conditions */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Medical Conditions or Allergies
+                  </label>
+                  <textarea
+                    value={registrationFormData.medicalConditions}
+                    onChange={(e) => handleRegistrationFormChange('medicalConditions', e.target.value)}
+                    placeholder="Please list any medical conditions, allergies, or medications that organizers should be aware of..."
+                    rows="3"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                  />
+                </div>
+
+                {/* Additional Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Additional Notes
+                  </label>
+                  <textarea
+                    value={registrationFormData.additionalNotes}
+                    onChange={(e) => handleRegistrationFormChange('additionalNotes', e.target.value)}
+                    placeholder="Any additional information you'd like to share with the organizers..."
+                    rows="3"
+                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                  />
+                </div>
+
+                {/* Form Actions */}
+                <div className="flex justify-between items-center pt-4 border-t border-gray-700">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRegistrationForm(false);
+                      setSelectedEvent(null);
+                    }}
+                    className="flex items-center space-x-2 text-gray-400 hover:text-white"
+                  >
+                    <FaArrowLeft />
+                    <span>Cancel</span>
+                  </button>
+                  
+                  <button
+                    type="submit"
+                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition"
+                  >
+                    <FaUserPlus />
+                    <span>Submit Registration</span>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

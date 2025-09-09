@@ -44,10 +44,139 @@ function Events() {
   const [showViewModal, setShowViewModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editData, setEditData] = useState(null)
+  const [participants, setParticipants] = useState([])
+  const [participantsLoading, setParticipantsLoading] = useState(false)
+  const [participantsError, setParticipantsError] = useState(null)
+  
+  // Registration management state
+  const [registrations, setRegistrations] = useState([])
+  const [registrationsLoading, setRegistrationsLoading] = useState(false)
+  const [registrationsError, setRegistrationsError] = useState(null)
+  const [showRegistrationsModal, setShowRegistrationsModal] = useState(false)
+  const [registrationFilter, setRegistrationFilter] = useState('pending')
+
+  const fetchParticipants = async (eventId) => {
+    try {
+      setParticipantsLoading(true)
+      setParticipantsError(null)
+      const response = await fetch(`http://localhost:5000/api/events/${eventId}/participants`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch participants')
+      setParticipants(data.participants || [])
+    } catch (err) {
+      console.error(err)
+      setParticipantsError(err.message || 'Failed to load participants')
+    } finally {
+      setParticipantsLoading(false)
+    }
+  }
+
+  const fetchRegistrations = async (eventId, status = null) => {
+    try {
+      setRegistrationsLoading(true)
+      setRegistrationsError(null)
+      const url = status 
+        ? `http://localhost:5000/api/events/${eventId}/registrations?status=${status}`
+        : `http://localhost:5000/api/events/${eventId}/registrations`
+      
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch registrations')
+      setRegistrations(data.registrations || [])
+    } catch (err) {
+      console.error(err)
+      setRegistrationsError(err.message || 'Failed to load registrations')
+    } finally {
+      setRegistrationsLoading(false)
+    }
+  }
+
+  const handleApproveRegistration = async (registrationId) => {
+    const result = await showConfirm(
+      'Approve Registration',
+      'Are you sure you want to approve this registration?',
+      'Yes, approve',
+      'Cancel'
+    )
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/events/registrations/${registrationId}/approve`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ reviewNotes: 'Approved by admin' })
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to approve registration')
+        }
+
+        showSuccess('Approved!', 'Registration has been approved successfully.')
+        fetchRegistrations(selectedEvent._id, registrationFilter)
+        fetchParticipants(selectedEvent._id)
+        fetchEvents() // Refresh events to update participant count
+      } catch (error) {
+        console.error('Error approving registration:', error)
+        showError('Error!', error.message || 'Failed to approve registration.')
+      }
+    }
+  }
+
+  const handleRejectRegistration = async (registrationId) => {
+    const result = await showConfirm(
+      'Reject Registration',
+      'Are you sure you want to reject this registration?',
+      'Yes, reject',
+      'Cancel'
+    )
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/events/registrations/${registrationId}/reject`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ reviewNotes: 'Rejected by admin' })
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to reject registration')
+        }
+
+        showSuccess('Rejected!', 'Registration has been rejected.')
+        fetchRegistrations(selectedEvent._id, registrationFilter)
+      } catch (error) {
+        console.error('Error rejecting registration:', error)
+        showError('Error!', error.message || 'Failed to reject registration.')
+      }
+    }
+  }
 
   const openView = (event) => {
     setSelectedEvent(event)
     setShowViewModal(true)
+    fetchParticipants(event._id)
+  }
+
+  const openRegistrations = (event) => {
+    setSelectedEvent(event)
+    setShowRegistrationsModal(true)
+    fetchRegistrations(event._id, registrationFilter)
   }
 
   const openEdit = (event) => {
@@ -68,8 +197,10 @@ function Events() {
   const closeModals = () => {
     setShowViewModal(false)
     setShowEditModal(false)
+    setShowRegistrationsModal(false)
     setSelectedEvent(null)
     setEditData(null)
+    setRegistrations([])
   }
 
   const handleEditChange = (e) => {
@@ -551,6 +682,46 @@ const handleSubmit = async (e) => {
                     <p className="whitespace-pre-wrap">{selectedEvent.description || '-'}</p>
                   </div>
 
+                  {/* Participants Section */}
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-lg font-semibold">Participants</h4>
+                      <span className="text-sm text-gray-400">{participants.length} of {selectedEvent.maxParticipants}</span>
+                    </div>
+
+                    {participantsLoading && (
+                      <p className="text-gray-400">Loading participants...</p>
+                    )}
+                    {participantsError && (
+                      <p className="text-red-400">{participantsError}</p>
+                    )}
+
+                    {!participantsLoading && !participantsError && (
+                      participants.length > 0 ? (
+                        <ul className="divide-y divide-gray-700 rounded border border-gray-700">
+                          {participants.map((p) => (
+                            <li key={p._id} className="p-3 flex items-center justify-between">
+                              <div>
+                                <a
+                                  href={`http://localhost:5173/dashboard/users/${p._id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-medium text-green-400 hover:underline"
+                                >
+                                  {p.firstName} {p.secondName}
+                                </a>
+                                <div className="text-sm text-gray-400">{p.email} · {p.phone}</div>
+                              </div>
+                              <span className="text-xs px-2 py-1 rounded bg-gray-700 text-gray-300">{p.role}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-gray-400">No participants yet.</p>
+                      )
+                    )}
+                  </div>
+
                   <div className="mt-6 flex justify-end">
                     <button onClick={closeModals} className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded">
                       Close
@@ -688,6 +859,153 @@ const handleSubmit = async (e) => {
             </div>
           )}
 
+          {/* Registrations Management Modal */}
+          {showRegistrationsModal && selectedEvent && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  {/* Modal Header */}
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white mb-2">Manage Registrations</h2>
+                      <p className="text-gray-300">{selectedEvent.name}</p>
+                    </div>
+                    <button
+                      onClick={closeModals}
+                      className="text-gray-400 hover:text-white text-xl"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+
+                  {/* Filter Tabs */}
+                  <div className="flex space-x-4 mb-6">
+                    {['pending', 'approved', 'rejected'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setRegistrationFilter(status);
+                          fetchRegistrations(selectedEvent._id, status);
+                        }}
+                        className={`px-4 py-2 rounded-lg font-medium transition ${
+                          registrationFilter === status
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Registrations List */}
+                  <div className="space-y-4">
+                    {registrationsLoading ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                      </div>
+                    ) : registrationsError ? (
+                      <div className="text-center py-8">
+                        <p className="text-red-400">{registrationsError}</p>
+                      </div>
+                    ) : registrations.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-400">No {registrationFilter} registrations found.</p>
+                      </div>
+                    ) : (
+                      registrations.map((registration) => (
+                        <div key={registration._id} className="bg-gray-700 rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-4 mb-3">
+                                <div>
+                                  <h4 className="text-lg font-semibold text-white">
+                                    {registration.user.firstName} {registration.user.secondName}
+                                  </h4>
+                                  <p className="text-gray-400">{registration.user.email}</p>
+                                  <p className="text-gray-400">{registration.user.phone}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm text-gray-400">Applied</p>
+                                  <p className="text-white">{new Date(registration.appliedAt).toLocaleDateString()}</p>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                <div>
+                                  <p className="text-sm text-gray-400">Experience Level</p>
+                                  <p className="text-white capitalize">{registration.experienceLevel}</p>
+                                </div>
+                                {registration.emergencyContact && (
+                                  <div>
+                                    <p className="text-sm text-gray-400">Emergency Contact</p>
+                                    <p className="text-white">
+                                      {registration.emergencyContact.name} ({registration.emergencyContact.relationship})
+                                    </p>
+                                    <p className="text-gray-300">{registration.emergencyContact.phone}</p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {registration.medicalConditions && (
+                                <div className="mb-3">
+                                  <p className="text-sm text-gray-400">Medical Conditions</p>
+                                  <p className="text-white">{registration.medicalConditions}</p>
+                                </div>
+                              )}
+
+                              {registration.additionalNotes && (
+                                <div className="mb-3">
+                                  <p className="text-sm text-gray-400">Additional Notes</p>
+                                  <p className="text-white">{registration.additionalNotes}</p>
+                                </div>
+                              )}
+
+                              {registration.reviewNotes && (
+                                <div className="mb-3">
+                                  <p className="text-sm text-gray-400">Review Notes</p>
+                                  <p className="text-white">{registration.reviewNotes}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Action Buttons */}
+                            {registration.status === 'pending' && (
+                              <div className="flex space-x-2 ml-4">
+                                <button
+                                  onClick={() => handleApproveRegistration(registration._id)}
+                                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleRejectRegistration(registration._id)}
+                                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={closeModals}
+                      className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Events Grid */}
           {!loading && !error && (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -731,18 +1049,28 @@ const handleSubmit = async (e) => {
                       <button
                         onClick={() => openView(event)}
                         className="p-2 text-blue-500 hover:text-blue-400 hover:bg-gray-700 rounded"
+                        title="View Details"
                       >
                         <FaEye />
                       </button>
                       <button
+                        onClick={() => openRegistrations(event)}
+                        className="p-2 text-green-500 hover:text-green-400 hover:bg-gray-700 rounded"
+                        title="Manage Registrations"
+                      >
+                        <FaUsers />
+                      </button>
+                      <button
                         onClick={() => openEdit(event)}
                         className="p-2 text-yellow-500 hover:text-yellow-400 hover:bg-gray-700 rounded"
+                        title="Edit Event"
                       >
                         <FaEdit />
                       </button>
                       <button
                         onClick={() => handleDeleteEvent(event._id, event.name)}
                         className="p-2 text-red-500 hover:text-red-400 hover:bg-gray-700 rounded"
+                        title="Delete Event"
                       >
                         <FaTrash />
                       </button>

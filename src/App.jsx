@@ -17,12 +17,7 @@ function App() {
               OffroadX
             </span>
           </div>
-          <div className="hidden md:flex space-x-8">
-            <Link to="/features" className="text-gray-300 hover:text-green-400 transition">Features</Link>
-            <Link to="/pricing" className="text-gray-300 hover:text-green-400 transition">Pricing</Link>
-            <Link to="/events" className="text-gray-300 hover:text-green-400 transition">Events</Link>
-            <Link to="/about" className="text-gray-300 hover:text-green-400 transition">About</Link>
-          </div>
+           
           <div>
             <Link 
               to="/login" 
@@ -87,7 +82,7 @@ function App() {
               {
                 icon: <FaMapMarkedAlt className="text-4xl mb-4 text-green-500" />,
                 title: "Route Planning",
-                desc: "Advanced GPS route planning with terrain analysis."
+                desc: "Advanced managment of laps recording."
               },
               {
                 icon: <FaChartLine className="text-4xl mb-4 text-green-500" />,
