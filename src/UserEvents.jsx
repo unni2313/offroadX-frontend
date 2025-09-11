@@ -31,6 +31,7 @@ import {
 
 function UserEvents() {
   const [user, setUser] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,6 +56,7 @@ function UserEvents() {
     const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));
+      fetchProfileData();
       fetchEvents();
       fetchUserParticipations();
       fetchUserRegistrations();
@@ -62,6 +64,26 @@ function UserEvents() {
       navigate('/login');
     }
   }, [navigate]);
+
+  const fetchProfileData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -330,66 +352,172 @@ function UserEvents() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <svg
+            className="absolute inset-0 w-full h-full opacity-20"
+            viewBox="0 0 1200 800"
+            preserveAspectRatio="xMidYMid slice"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="loadingMountain1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgba(120, 113, 108, 0.08)" />
+                <stop offset="50%" stopColor="rgba(168, 162, 158, 0.06)" />
+                <stop offset="100%" stopColor="rgba(87, 83, 81, 0.04)" />
+              </linearGradient>
+              <linearGradient id="loadingMountain2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgba(249, 115, 22, 0.04)" />
+                <stop offset="50%" stopColor="rgba(251, 191, 36, 0.03)" />
+                <stop offset="100%" stopColor="rgba(245, 158, 11, 0.02)" />
+              </linearGradient>
+            </defs>
+            
+            <path
+              d="M0,500 L200,300 L400,450 L600,250 L800,400 L1000,200 L1200,350 L1200,800 L0,800 Z"
+              fill="url(#loadingMountain1)"
+              className="animate-[mountainFloat1_15s_ease-in-out_infinite] opacity-60"
+            />
+            
+            <path
+              d="M0,600 L150,400 L350,550 L550,350 L750,500 L950,300 L1200,450 L1200,800 L0,800 Z"
+              fill="url(#loadingMountain2)"
+              className="animate-[mountainFloat2_12s_ease-in-out_infinite_reverse] opacity-40"
+            />
+          </svg>
+        </div>
+        
+        <div className="relative z-10 text-center">
+          <div className="relative mx-auto mb-6 w-16 h-16">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-500/20 border-t-orange-500 shadow-lg shadow-orange-500/20"></div>
+            <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border-2 border-orange-400/40"></div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-orange-400 font-semibold text-lg">Loading Adventure Portal...</p>
+            <p className="text-stone-400">Preparing your offroad experience</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen bg-black text-stone-100 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <svg
+          className="absolute inset-0 w-full h-full opacity-30"
+          viewBox="0 0 1200 800"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="bgMountain1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(120, 113, 108, 0.08)" />
+              <stop offset="50%" stopColor="rgba(168, 162, 158, 0.06)" />
+              <stop offset="100%" stopColor="rgba(87, 83, 81, 0.04)" />
+            </linearGradient>
+            <linearGradient id="bgMountain2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(249, 115, 22, 0.04)" />
+              <stop offset="50%" stopColor="rgba(251, 191, 36, 0.03)" />
+              <stop offset="100%" stopColor="rgba(245, 158, 11, 0.02)" />
+            </linearGradient>
+          </defs>
+          
+          <path
+            d="M0,500 L200,300 L400,450 L600,250 L800,400 L1000,200 L1200,350 L1200,800 L0,800 Z"
+            fill="url(#bgMountain1)"
+            className="animate-[mountainFloat1_30s_ease-in-out_infinite] opacity-60"
+          />
+          
+          <path
+            d="M0,600 L150,400 L350,550 L550,350 L750,500 L950,300 L1200,450 L1200,800 L0,800 Z"
+            fill="url(#bgMountain2)"
+            className="animate-[mountainFloat2_25s_ease-in-out_infinite_reverse] opacity-40"
+          />
+        </svg>
+      </div>
+
       {/* Navigation Header */}
-      <nav className="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+      <nav className="relative z-10 bg-gradient-to-r from-stone-900/95 via-amber-950/90 to-stone-900/95 backdrop-blur-xl border-b border-orange-500/20 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <FaMapMarkedAlt className="text-green-500 text-2xl" />
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600">
+              <div className="relative">
+                <FaMapMarkedAlt className="text-orange-500 text-2xl drop-shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
+                <div className="absolute inset-0 text-orange-500 text-2xl animate-pulse opacity-50">
+                  <FaMapMarkedAlt />
+                </div>
+              </div>
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500 drop-shadow-lg">
                 OffroadX
               </span>
             </div>
 
             {/* Navigation Links */}
             <div className="hidden md:flex items-center space-x-8">
-              <Link to="/home" className="text-gray-300 hover:text-green-400 transition flex items-center space-x-1">
-                <FaCompass className="text-sm" />
-                <span>Home</span>
+              <Link to="/home" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-1 group">
+                <FaCompass className="text-sm group-hover:animate-spin transition-transform" />
+                <span className="relative">
+                  Home
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
+                </span>
               </Link>
-              <Link to="/events" className="text-green-400 font-medium flex items-center space-x-1">
+              <Link to="/events" className="text-orange-400 font-medium flex items-center space-x-1 relative">
                 <FaCalendarAlt className="text-sm" />
                 <span>Events</span>
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-orange-400 rounded-full"></div>
               </Link>
-              <Link to="/routes" className="text-gray-300 hover:text-green-400 transition flex items-center space-x-1">
+              <Link to="/routes" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-1 group">
                 <FaRoute className="text-sm" />
-                <span>Routes</span>
+                <span className="relative">
+                  Routes
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
+                </span>
               </Link>
-              <Link to="/community" className="text-gray-300 hover:text-green-400 transition flex items-center space-x-1">
+              <Link to="/community" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-1 group">
                 <FaUsers className="text-sm" />
-                <span>Community</span>
+                <span className="relative">
+                  Community
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
+                </span>
               </Link>
-              <Link to="/achievements" className="text-gray-300 hover:text-green-400 transition flex items-center space-x-1">
+              <Link to="/achievements" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-1 group">
                 <FaTrophy className="text-sm" />
-                <span>Achievements</span>
+                <span className="relative">
+                  Achievements
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
+                </span>
               </Link>
             </div>
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
-              <button className="text-gray-300 hover:text-green-400 transition">
+              <button className="text-stone-300 hover:text-orange-400 transition-all duration-300 relative group">
                 <FaBell className="text-xl" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
               </button>
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                  <FaUser className="text-white text-sm" />
-                </div>
+                {profileData?.profilePhotoUrl ? (
+                  <img
+                    src={profileData.profilePhotoUrl}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-orange-500/50 shadow-lg shadow-orange-500/30"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
+                    <FaUser className="text-white text-sm" />
+                  </div>
+                )}
                 <div className="hidden md:block">
                   <p className="text-sm font-medium text-white">{user.firstName} {user.secondName}</p>
-                  <p className="text-xs text-gray-400">Explorer</p>
+                  <p className="text-xs text-orange-400">Explorer</p>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="text-gray-300 hover:text-red-400 transition"
+                  className="text-stone-300 hover:text-red-400 transition-all duration-300 hover:scale-110"
                   title="Logout"
                 >
                   <FaSignOutAlt />
@@ -401,55 +529,94 @@ function UserEvents() {
       </nav>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
         <div className="mb-8">
-          <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-8 text-white relative overflow-hidden">
-            <div className="absolute inset-0 bg-black opacity-10"></div>
+          <div className="relative bg-gradient-to-br from-stone-900/90 via-amber-950/80 to-stone-800/90 backdrop-blur-xl rounded-3xl p-8 text-white border border-orange-500/20 shadow-2xl shadow-orange-500/10 overflow-hidden">
+            {/* Animated Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full blur-xl animate-pulse"></div>
+              <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-amber-600/15 to-transparent rounded-full blur-2xl animate-pulse delay-1000"></div>
+            </div>
+            
             <div className="relative z-10">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                Discover Amazing Events 🌟
-              </h1>
-              <p className="text-green-100 text-lg mb-4">
-                Join thrilling offroad adventures and connect with fellow explorers!
-              </p>
-              <div className="flex items-center space-x-6 text-sm">
-                <div className="flex items-center space-x-2">
-                  <FaCalendarAlt />
-                  <span>Available Events: {events.length}</span>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                  <FaCalendarAlt className="text-white text-xl" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <FaUsers />
-                  <span>Your Events: {userParticipations.length}</span>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500">
+                    Discover Amazing Events
+                  </h1>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse delay-300"></div>
+                    <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse delay-700"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-stone-200 text-lg mb-6 leading-relaxed">
+                Join thrilling offroad adventures and connect with fellow explorers in the most epic terrain challenges!
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-black/30 backdrop-blur-sm rounded-xl p-4 border border-orange-500/20">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center">
+                      <FaCalendarAlt className="text-white" />
+                    </div>
+                    <div>
+                      <p className="text-orange-400 font-semibold">Available Events</p>
+                      <p className="text-2xl font-bold text-white">{events.length}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-black/30 backdrop-blur-sm rounded-xl p-4 border border-orange-500/20">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-amber-600 to-orange-500 rounded-lg flex items-center justify-center">
+                      <FaUsers className="text-white" />
+                    </div>
+                    <div>
+                      <p className="text-orange-400 font-semibold">Your Events</p>
+                      <p className="text-2xl font-bold text-white">{userParticipations.length}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+            
             {/* Decorative Elements */}
-            <div className="absolute top-4 right-4 text-6xl opacity-20">🏔️</div>
-            <div className="absolute bottom-4 right-16 text-4xl opacity-20">🚗</div>
+            <div className="absolute top-4 right-4 text-6xl opacity-20 animate-bounce">🏔️</div>
+            <div className="absolute bottom-4 right-16 text-4xl opacity-20 animate-pulse">🚗</div>
           </div>
         </div>
 
         {/* Search and Filter Controls */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <div className="bg-gradient-to-r from-stone-900/90 via-amber-950/80 to-stone-900/90 backdrop-blur-xl rounded-2xl p-6 border border-orange-500/20 shadow-xl shadow-orange-500/5 mb-8">
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 relative group">
+              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-400 group-focus-within:text-orange-300 transition-colors" />
               <input
                 type="text"
                 placeholder="Search events by name or location..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                className="w-full pl-12 pr-4 py-4 bg-black/40 border border-orange-500/30 rounded-xl text-white placeholder-stone-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm"
               />
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/5 to-amber-600/5 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none"></div>
             </div>
+            
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex items-center space-x-2">
-                <FaFilter className="text-gray-400" />
+              <div className="flex items-center space-x-3 group">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                  <FaFilter className="text-white text-sm" />
+                </div>
                 <select
                   value={filterDifficulty}
                   onChange={(e) => setFilterDifficulty(e.target.value)}
-                  className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500"
+                  className="bg-black/40 border border-orange-500/30 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm min-w-[160px]"
                 >
                   <option value="all">All Difficulties</option>
                   <option value="Easy">Easy</option>
@@ -457,11 +624,15 @@ function UserEvents() {
                   <option value="Hard">Hard</option>
                 </select>
               </div>
-              <div className="flex items-center space-x-2">
+              
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-amber-600 to-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                  <FaClock className="text-white text-sm" />
+                </div>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500"
+                  className="bg-black/40 border border-orange-500/30 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm min-w-[140px]"
                 >
                   <option value="all">All Status</option>
                   <option value="upcoming">Upcoming</option>
@@ -475,20 +646,30 @@ function UserEvents() {
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Loading events...</p>
+          <div className="text-center py-16">
+            <div className="relative mx-auto mb-6 w-16 h-16">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-500/20 border-t-orange-500 shadow-lg shadow-orange-500/20"></div>
+              <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border-2 border-orange-400/40"></div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-orange-400 font-semibold text-lg">Loading Epic Adventures...</p>
+              <p className="text-stone-400">Discovering the best offroad events for you</p>
+            </div>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-6 mb-6">
-            <p className="text-red-400 text-center">{error}</p>
-            <div className="text-center mt-4">
+          <div className="bg-gradient-to-r from-red-900/30 via-red-800/20 to-red-900/30 backdrop-blur-xl border border-red-500/30 rounded-2xl p-8 mb-8 shadow-xl shadow-red-500/10">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-500/30">
+                <FaTimesCircle className="text-white text-2xl" />
+              </div>
+              <h3 className="text-xl font-bold text-red-400 mb-2">Oops! Something went wrong</h3>
+              <p className="text-red-300 mb-6">{error}</p>
               <button
                 onClick={fetchEvents}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"
+                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-red-500/20 hover:shadow-red-500/30 hover:scale-105"
               >
                 Try Again
               </button>
@@ -498,7 +679,7 @@ function UserEvents() {
 
         {/* Events Grid */}
         {!loading && !error && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredEvents.map((event) => {
               const registrationStatus = getRegistrationStatus(event._id);
               const isApproved = registrationStatus === 'approved';
@@ -509,61 +690,85 @@ function UserEvents() {
               const isUpcoming = event.status === 'upcoming';
               
               return (
-                <div key={event._id} className="bg-gray-800 rounded-xl border border-gray-700 hover:border-green-500/30 transition overflow-hidden">
-                  <div className="p-6">
+                <div key={event._id} className="group relative bg-gradient-to-br from-stone-900/90 via-amber-950/80 to-stone-800/90 backdrop-blur-xl rounded-2xl border border-orange-500/20 hover:border-orange-400/40 transition-all duration-500 overflow-hidden shadow-xl shadow-orange-500/5 hover:shadow-orange-500/10 hover:scale-[1.02]">
+                  {/* Animated Background */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-500/10 to-transparent rounded-full blur-xl"></div>
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-amber-600/10 to-transparent rounded-full blur-xl"></div>
+                  </div>
+                  
+                  <div className="relative p-6">
                     {/* Event Header */}
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-xl font-bold text-white line-clamp-2">{event.name}</h3>
-                      <div className="flex flex-col space-y-1">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(event.status)}`}>
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex-1 pr-4">
+                        <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-stone-200 line-clamp-2 mb-2">{event.name}</h3>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                          <span className="text-orange-400 text-sm font-medium">Adventure Awaits</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${getStatusBadge(event.status)} shadow-lg`}>
                           {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
                         </span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyBadge(event.difficulty)}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${getDifficultyBadge(event.difficulty)} shadow-lg`}>
                           {getDifficultyIcon(event.difficulty)} {event.difficulty}
                         </span>
                       </div>
                     </div>
 
                     {/* Event Details */}
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-center text-gray-300">
-                        <FaCalendarAlt className="mr-2 text-green-500 flex-shrink-0" />
-                        <span className="text-sm">{event.date} at {event.time}</span>
+                    <div className="space-y-4 mb-6">
+                      <div className="flex items-center text-stone-200 group/item">
+                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-orange-500/20">
+                          <FaCalendarAlt className="text-white text-xs" />
+                        </div>
+                        <span className="text-sm font-medium">{event.date} at {event.time}</span>
                       </div>
-                      <div className="flex items-center text-gray-300">
-                        <FaMapMarkerAlt className="mr-2 text-green-500 flex-shrink-0" />
-                        <span className="text-sm line-clamp-1">{event.location}</span>
+                      <div className="flex items-center text-stone-200 group/item">
+                        <div className="w-8 h-8 bg-gradient-to-r from-amber-600 to-orange-500 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-orange-500/20">
+                          <FaMapMarkerAlt className="text-white text-xs" />
+                        </div>
+                        <span className="text-sm font-medium line-clamp-1">{event.location}</span>
                       </div>
-                      <div className="flex items-center text-gray-300">
-                        <FaUsers className="mr-2 text-green-500 flex-shrink-0" />
-                        <span className="text-sm">{event.participants}/{event.maxParticipants} participants</span>
+                      <div className="flex items-center text-stone-200 group/item">
+                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-orange-500/20">
+                          <FaUsers className="text-white text-xs" />
+                        </div>
+                        <span className="text-sm font-medium">{event.participants}/{event.maxParticipants} participants</span>
                       </div>
                       {event.duration && (
-                        <div className="flex items-center text-gray-300">
-                          <FaClock className="mr-2 text-green-500 flex-shrink-0" />
-                          <span className="text-sm">{event.duration}</span>
+                        <div className="flex items-center text-stone-200 group/item">
+                          <div className="w-8 h-8 bg-gradient-to-r from-amber-600 to-orange-500 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-orange-500/20">
+                            <FaClock className="text-white text-xs" />
+                          </div>
+                          <span className="text-sm font-medium">{event.duration}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Description */}
                     {event.description && (
-                      <p className="text-gray-400 text-sm mb-4 line-clamp-3">
-                        {event.description}
-                      </p>
+                      <div className="mb-6">
+                        <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-orange-500/10">
+                          <p className="text-stone-300 text-sm leading-relaxed line-clamp-3">
+                            {event.description}
+                          </p>
+                        </div>
+                      </div>
                     )}
 
                     {/* Progress Bar */}
-                    <div className="mb-4">
-                      <div className="flex justify-between text-xs text-gray-400 mb-1">
-                        <span>Participants</span>
-                        <span>{Math.round((event.participants / event.maxParticipants) * 100)}%</span>
+                    <div className="mb-6">
+                      <div className="flex justify-between text-xs text-orange-400 mb-2 font-medium">
+                        <span>Event Capacity</span>
+                        <span>{Math.round((event.participants / event.maxParticipants) * 100)}% Full</span>
                       </div>
-                      <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div className="w-full bg-black/30 rounded-full h-3 border border-orange-500/20 overflow-hidden">
                         <div 
-                          className={`h-2 rounded-full transition-all ${
-                            isFull ? 'bg-red-500' : 'bg-gradient-to-r from-green-600 to-green-500'
-                          }`}
+                          className={`h-3 rounded-full transition-all duration-700 ${
+                            isFull ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-orange-500 to-amber-600'
+                          } shadow-lg ${isFull ? 'shadow-red-500/30' : 'shadow-orange-500/30'}`}
                           style={{ width: `${Math.min((event.participants / event.maxParticipants) * 100, 100)}%` }}
                         ></div>
                       </div>
@@ -571,13 +776,15 @@ function UserEvents() {
 
                     {/* Registration Status Badge */}
                     {hasRegistration && (
-                      <div className="mb-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getRegistrationStatusBadge(registrationStatus)}`}>
-                          {getRegistrationStatusIcon(registrationStatus)}
-                          {registrationStatus === 'pending' && 'Pending Approval'}
-                          {registrationStatus === 'approved' && 'Approved'}
-                          {registrationStatus === 'rejected' && 'Rejected'}
-                        </span>
+                      <div className="mb-6">
+                        <div className="bg-black/30 backdrop-blur-sm rounded-xl p-3 border border-orange-500/20">
+                          <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getRegistrationStatusBadge(registrationStatus)} shadow-lg backdrop-blur-sm`}>
+                            {getRegistrationStatusIcon(registrationStatus)}
+                            {registrationStatus === 'pending' && 'Pending Approval'}
+                            {registrationStatus === 'approved' && 'Approved'}
+                            {registrationStatus === 'rejected' && 'Rejected'}
+                          </span>
+                        </div>
                       </div>
                     )}
 
@@ -585,17 +792,19 @@ function UserEvents() {
                     <div className="flex justify-between items-center">
                       <button
                         onClick={() => handleViewDetails(event)}
-                        className="flex items-center space-x-1 text-blue-400 hover:text-blue-300 text-sm font-medium"
+                        className="flex items-center space-x-2 text-orange-400 hover:text-orange-300 text-sm font-medium transition-all duration-300 group/btn"
                       >
-                        <FaInfoCircle />
+                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500/20 to-amber-600/20 rounded-lg flex items-center justify-center group-hover/btn:from-orange-500/30 group-hover/btn:to-amber-600/30 transition-all">
+                          <FaInfoCircle className="text-orange-400" />
+                        </div>
                         <span>Details</span>
                       </button>
                       
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-3">
                         {hasRegistration && !isRejected ? (
                           <button
                             onClick={() => handleCancelRegistration(event._id)}
-                            className="flex items-center space-x-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+                            className="flex items-center space-x-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg shadow-red-500/20 hover:shadow-red-500/30 hover:scale-105"
                           >
                             <FaTimesCircle />
                             <span>Cancel</span>
@@ -604,10 +813,10 @@ function UserEvents() {
                           <button
                             onClick={() => handleRegisterEvent(event._id)}
                             disabled={!isUpcoming || isFull}
-                            className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-sm font-medium transition ${
+                            className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg ${
                               !isUpcoming || isFull
-                                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                                : 'bg-green-600 hover:bg-green-700 text-white'
+                                ? 'bg-gradient-to-r from-stone-700 to-stone-800 text-stone-400 cursor-not-allowed shadow-stone-500/10'
+                                : 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-orange-500/20 hover:shadow-orange-500/30 hover:scale-105'
                             }`}
                           >
                             <FaUserPlus />
@@ -619,9 +828,11 @@ function UserEvents() {
 
                     {/* Joined Indicator */}
                     {isApproved && (
-                      <div className="mt-3 flex items-center justify-center space-x-2 bg-green-900/30 border border-green-500/30 rounded-lg py-2">
-                        <FaCheckCircle className="text-green-400" />
-                        <span className="text-green-400 text-sm font-medium">You're registered!</span>
+                      <div className="mt-4 flex items-center justify-center space-x-3 bg-gradient-to-r from-green-900/40 via-emerald-900/30 to-green-900/40 backdrop-blur-sm border border-green-500/30 rounded-xl py-3 shadow-lg shadow-green-500/10">
+                        <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                          <FaCheckCircle className="text-white text-sm" />
+                        </div>
+                        <span className="text-green-400 font-medium">You're registered for this adventure!</span>
                       </div>
                     )}
                   </div>
@@ -633,94 +844,138 @@ function UserEvents() {
 
         {/* No Events Found */}
         {!loading && !error && filteredEvents.length === 0 && (
-          <div className="text-center py-12">
-            <FaCalendarAlt className="mx-auto text-gray-500 text-6xl mb-4" />
-            <h3 className="text-xl font-semibold text-gray-400 mb-2">No events found</h3>
-            <p className="text-gray-500">Try adjusting your search criteria or check back later for new events.</p>
+          <div className="text-center py-16">
+            <div className="relative mx-auto mb-8 w-24 h-24">
+              <div className="w-24 h-24 bg-gradient-to-r from-orange-500/20 to-amber-600/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-orange-500/20">
+                <FaCalendarAlt className="text-orange-400 text-4xl" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-600/10 rounded-full animate-ping"></div>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">No Adventures Found</h3>
+              <p className="text-stone-400 max-w-md mx-auto leading-relaxed">
+                No events match your current search criteria. Try adjusting your filters or check back later for new epic adventures!
+              </p>
+              <div className="flex justify-center space-x-2 mt-6">
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-amber-500 rounded-full animate-bounce delay-100"></div>
+                <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce delay-200"></div>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
       {/* Event Details Modal */}
       {showEventDetails && selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-stone-900/95 via-amber-950/90 to-stone-800/95 backdrop-blur-xl rounded-3xl border border-orange-500/30 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-orange-500/10">
+            <div className="p-8">
               {/* Modal Header */}
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">{selectedEvent.name}</h2>
-                  <div className="flex space-x-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(selectedEvent.status)}`}>
+              <div className="flex justify-between items-start mb-8">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                      <FaCalendarAlt className="text-white text-xl" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500">{selectedEvent.name}</h2>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                        <span className="text-orange-400 text-sm font-medium">Event Details</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex space-x-3">
+                    <span className={`px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm ${getStatusBadge(selectedEvent.status)} shadow-lg`}>
                       {selectedEvent.status.charAt(0).toUpperCase() + selectedEvent.status.slice(1)}
                     </span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyBadge(selectedEvent.difficulty)}`}>
+                    <span className={`px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm ${getDifficultyBadge(selectedEvent.difficulty)} shadow-lg`}>
                       {getDifficultyIcon(selectedEvent.difficulty)} {selectedEvent.difficulty}
                     </span>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowEventDetails(false)}
-                  className="text-gray-400 hover:text-white text-xl"
+                  className="text-stone-400 hover:text-orange-400 text-2xl transition-all duration-300 hover:scale-110 ml-4"
                 >
                   <FaTimesCircle />
                 </button>
               </div>
 
               {/* Event Details */}
-              <div className="space-y-4 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-3 text-gray-300">
-                    <FaCalendarAlt className="text-green-500" />
-                    <div>
-                      <p className="text-sm text-gray-400">Date & Time</p>
-                      <p className="font-medium">{selectedEvent.date} at {selectedEvent.time}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 text-gray-300">
-                    <FaMapMarkerAlt className="text-green-500" />
-                    <div>
-                      <p className="text-sm text-gray-400">Location</p>
-                      <p className="font-medium">{selectedEvent.location}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 text-gray-300">
-                    <FaUsers className="text-green-500" />
-                    <div>
-                      <p className="text-sm text-gray-400">Participants</p>
-                      <p className="font-medium">{selectedEvent.participants}/{selectedEvent.maxParticipants}</p>
-                    </div>
-                  </div>
-                  {selectedEvent.duration && (
-                    <div className="flex items-center space-x-3 text-gray-300">
-                      <FaClock className="text-green-500" />
+              <div className="space-y-8 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-orange-500/20">
+                    <div className="flex items-center space-x-3 text-stone-200">
+                      <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <FaCalendarAlt className="text-white" />
+                      </div>
                       <div>
-                        <p className="text-sm text-gray-400">Duration</p>
-                        <p className="font-medium">{selectedEvent.duration}</p>
+                        <p className="text-sm text-orange-400 font-medium">Date & Time</p>
+                        <p className="font-bold text-white">{selectedEvent.date} at {selectedEvent.time}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-orange-500/20">
+                    <div className="flex items-center space-x-3 text-stone-200">
+                      <div className="w-10 h-10 bg-gradient-to-r from-amber-600 to-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <FaMapMarkerAlt className="text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-orange-400 font-medium">Location</p>
+                        <p className="font-bold text-white">{selectedEvent.location}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-orange-500/20">
+                    <div className="flex items-center space-x-3 text-stone-200">
+                      <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <FaUsers className="text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-orange-400 font-medium">Participants</p>
+                        <p className="font-bold text-white">{selectedEvent.participants}/{selectedEvent.maxParticipants}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {selectedEvent.duration && (
+                    <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-orange-500/20">
+                      <div className="flex items-center space-x-3 text-stone-200">
+                        <div className="w-10 h-10 bg-gradient-to-r from-amber-600 to-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                          <FaClock className="text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-orange-400 font-medium">Duration</p>
+                          <p className="font-bold text-white">{selectedEvent.duration}</p>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
 
                 {selectedEvent.description && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Description</h3>
-                    <p className="text-gray-300 leading-relaxed">{selectedEvent.description}</p>
+                  <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
+                    <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500 mb-4">Adventure Description</h3>
+                    <p className="text-stone-200 leading-relaxed text-lg">{selectedEvent.description}</p>
                   </div>
                 )}
 
                 {/* Progress Bar */}
-                <div>
-                  <div className="flex justify-between text-sm text-gray-400 mb-2">
-                    <span>Event Capacity</span>
-                    <span>{Math.round((selectedEvent.participants / selectedEvent.maxParticipants) * 100)}% Full</span>
+                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
+                  <div className="flex justify-between text-orange-400 mb-4 font-medium">
+                    <span className="text-lg">Event Capacity</span>
+                    <span className="text-xl font-bold">{Math.round((selectedEvent.participants / selectedEvent.maxParticipants) * 100)}% Full</span>
                   </div>
-                  <div className="w-full bg-gray-700 rounded-full h-3">
+                  <div className="w-full bg-black/30 rounded-full h-4 border border-orange-500/20 overflow-hidden">
                     <div 
-                      className={`h-3 rounded-full transition-all ${
+                      className={`h-4 rounded-full transition-all duration-700 ${
                         selectedEvent.participants >= selectedEvent.maxParticipants 
-                          ? 'bg-red-500' 
-                          : 'bg-gradient-to-r from-green-600 to-green-500'
+                          ? 'bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/30' 
+                          : 'bg-gradient-to-r from-orange-500 to-amber-600 shadow-lg shadow-orange-500/30'
                       }`}
                       style={{ width: `${Math.min((selectedEvent.participants / selectedEvent.maxParticipants) * 100, 100)}%` }}
                     ></div>
@@ -729,16 +984,18 @@ function UserEvents() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-between items-center pt-4 border-t border-gray-700">
+              <div className="flex justify-between items-center pt-6 border-t border-orange-500/20">
                 <button
                   onClick={() => setShowEventDetails(false)}
-                  className="flex items-center space-x-2 text-gray-400 hover:text-white"
+                  className="flex items-center space-x-3 text-stone-400 hover:text-orange-400 transition-all duration-300 group"
                 >
-                  <FaArrowLeft />
-                  <span>Back to Events</span>
+                  <div className="w-10 h-10 bg-gradient-to-r from-stone-700 to-stone-800 group-hover:from-orange-500/20 group-hover:to-amber-600/20 rounded-lg flex items-center justify-center transition-all">
+                    <FaArrowLeft className="group-hover:text-orange-400" />
+                  </div>
+                  <span className="font-medium">Back to Events</span>
                 </button>
                 
-                <div className="flex space-x-3">
+                <div className="flex space-x-4">
                   {(() => {
                     const modalRegistrationStatus = getRegistrationStatus(selectedEvent._id);
                     const modalHasRegistration = modalRegistrationStatus !== null;
@@ -751,7 +1008,7 @@ function UserEvents() {
                             handleCancelRegistration(selectedEvent._id);
                             setShowEventDetails(false);
                           }}
-                          className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition"
+                          className="flex items-center space-x-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-red-500/20 hover:shadow-red-500/30 hover:scale-105"
                         >
                           <FaTimesCircle />
                           <span>Cancel Registration</span>
@@ -765,10 +1022,10 @@ function UserEvents() {
                             handleRegisterEvent(selectedEvent._id);
                           }}
                           disabled={selectedEvent.status !== 'upcoming' || selectedEvent.participants >= selectedEvent.maxParticipants}
-                          className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition ${
+                          className={`flex items-center space-x-3 px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-lg ${
                             selectedEvent.status !== 'upcoming' || selectedEvent.participants >= selectedEvent.maxParticipants
-                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                              : 'bg-green-600 hover:bg-green-700 text-white'
+                              ? 'bg-gradient-to-r from-stone-700 to-stone-800 text-stone-400 cursor-not-allowed shadow-stone-500/10'
+                              : 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-orange-500/20 hover:shadow-orange-500/30 hover:scale-105'
                           }`}
                         >
                           <FaUserPlus />
@@ -777,7 +1034,7 @@ function UserEvents() {
                               ? 'Event Full' 
                               : selectedEvent.status !== 'upcoming' 
                                 ? 'Event Closed' 
-                                : 'Register'
+                                : 'Register for Adventure'
                             }
                           </span>
                         </button>
@@ -793,58 +1050,76 @@ function UserEvents() {
 
       {/* Registration Form Modal */}
       {showRegistrationForm && selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-stone-900/95 via-amber-950/90 to-stone-800/95 backdrop-blur-xl rounded-3xl border border-orange-500/30 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-orange-500/10">
+            <div className="p-8">
               {/* Modal Header */}
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Register for Event</h2>
-                  <p className="text-gray-300">{selectedEvent.name}</p>
+              <div className="flex justify-between items-start mb-8">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                      <FaUserPlus className="text-white text-xl" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500">Register for Adventure</h2>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                        <span className="text-orange-400 text-sm font-medium">Join the Experience</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-orange-500/20">
+                    <p className="text-stone-200 font-medium text-lg">{selectedEvent.name}</p>
+                  </div>
                 </div>
                 <button
                   onClick={() => {
                     setShowRegistrationForm(false);
                     setSelectedEvent(null);
                   }}
-                  className="text-gray-400 hover:text-white text-xl"
+                  className="text-stone-400 hover:text-orange-400 text-2xl transition-all duration-300 hover:scale-110 ml-4"
                 >
                   <FaTimesCircle />
                 </button>
               </div>
 
               {/* Registration Form */}
-              <form onSubmit={handleRegistrationFormSubmit} className="space-y-6">
+              <form onSubmit={handleRegistrationFormSubmit} className="space-y-8">
                 {/* Emergency Contact */}
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Emergency Contact</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                      <FaUsers className="text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Emergency Contact</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-orange-400 mb-3">
                         Name *
                       </label>
                       <input
                         type="text"
                         value={registrationFormData.emergencyContact.name}
                         onChange={(e) => handleRegistrationFormChange('emergencyContact.name', e.target.value)}
-                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                        className="w-full px-4 py-3 bg-black/30 border border-orange-500/30 rounded-xl text-white placeholder-stone-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-orange-400 mb-3">
                         Phone *
                       </label>
                       <input
                         type="tel"
                         value={registrationFormData.emergencyContact.phone}
                         onChange={(e) => handleRegistrationFormChange('emergencyContact.phone', e.target.value)}
-                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                        className="w-full px-4 py-3 bg-black/30 border border-orange-500/30 rounded-xl text-white placeholder-stone-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm"
                         required
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-orange-400 mb-3">
                         Relationship *
                       </label>
                       <input
@@ -852,7 +1127,7 @@ function UserEvents() {
                         value={registrationFormData.emergencyContact.relationship}
                         onChange={(e) => handleRegistrationFormChange('emergencyContact.relationship', e.target.value)}
                         placeholder="e.g., Spouse, Parent, Friend"
-                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                        className="w-full px-4 py-3 bg-black/30 border border-orange-500/30 rounded-xl text-white placeholder-stone-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm"
                         required
                       />
                     </div>
@@ -860,67 +1135,84 @@ function UserEvents() {
                 </div>
 
                 {/* Experience Level */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Experience Level *
-                  </label>
+                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-r from-amber-600 to-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                      <FaStar className="text-white" />
+                    </div>
+                    <label className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">
+                      Experience Level *
+                    </label>
+                  </div>
                   <select
                     value={registrationFormData.experienceLevel}
                     onChange={(e) => handleRegistrationFormChange('experienceLevel', e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                    className="w-full px-4 py-3 bg-black/30 border border-orange-500/30 rounded-xl text-white focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm"
                     required
                   >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
+                    <option value="beginner" className="bg-stone-900 text-stone-100  py-2">Beginner - New to offroad adventures</option>
+                    <option value="intermediate" className="bg-stone-900 text-stone-100 py-2">Intermediate - Some experience</option>
+                    <option value="advanced" className="bg-stone-900 text-stone-100 py-2">Advanced - Experienced adventurer</option>
                   </select>
                 </div>
 
                 {/* Medical Conditions */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Medical Conditions or Allergies
-                  </label>
+                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                      <FaInfoCircle className="text-white" />
+                    </div>
+                    <label className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">
+                      Medical Conditions or Allergies
+                    </label>
+                  </div>
                   <textarea
                     value={registrationFormData.medicalConditions}
                     onChange={(e) => handleRegistrationFormChange('medicalConditions', e.target.value)}
                     placeholder="Please list any medical conditions, allergies, or medications that organizers should be aware of..."
-                    rows="3"
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                    rows="4"
+                    className="w-full px-4 py-3 bg-black/30 border border-orange-500/30 rounded-xl text-white placeholder-stone-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm resize-none"
                   />
                 </div>
 
                 {/* Additional Notes */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Additional Notes
-                  </label>
+                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-r from-amber-600 to-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                      <FaCompass className="text-white" />
+                    </div>
+                    <label className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">
+                      Additional Notes
+                    </label>
+                  </div>
                   <textarea
                     value={registrationFormData.additionalNotes}
                     onChange={(e) => handleRegistrationFormChange('additionalNotes', e.target.value)}
                     placeholder="Any additional information you'd like to share with the organizers..."
-                    rows="3"
-                    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                    rows="4"
+                    className="w-full px-4 py-3 bg-black/30 border border-orange-500/30 rounded-xl text-white placeholder-stone-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm resize-none"
                   />
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex justify-between items-center pt-4 border-t border-gray-700">
+                <div className="flex justify-between items-center pt-6 border-t border-orange-500/20">
                   <button
                     type="button"
                     onClick={() => {
                       setShowRegistrationForm(false);
                       setSelectedEvent(null);
                     }}
-                    className="flex items-center space-x-2 text-gray-400 hover:text-white"
+                    className="flex items-center space-x-3 text-stone-400 hover:text-orange-400 transition-all duration-300 group"
                   >
-                    <FaArrowLeft />
-                    <span>Cancel</span>
+                    <div className="w-10 h-10 bg-gradient-to-r from-stone-700 to-stone-800 group-hover:from-orange-500/20 group-hover:to-amber-600/20 rounded-lg flex items-center justify-center transition-all">
+                      <FaArrowLeft className="group-hover:text-orange-400" />
+                    </div>
+                    <span className="font-medium">Cancel</span>
                   </button>
                   
                   <button
                     type="submit"
-                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition"
+                    className="flex items-center space-x-3 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 hover:scale-105"
                   >
                     <FaUserPlus />
                     <span>Submit Registration</span>

@@ -427,20 +427,50 @@ function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="loadingBg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgba(120, 113, 108, 0.1)" />
+                <stop offset="100%" stopColor="rgba(87, 83, 81, 0.05)" />
+              </linearGradient>
+            </defs>
+            <path d="M0,400 L300,200 L600,350 L900,150 L1200,300 L1200,800 L0,800 Z" fill="url(#loadingBg1)" className="animate-pulse" />
+          </svg>
+        </div>
+        <div className="relative z-10 text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-500/30 border-t-orange-500 mx-auto mb-4"></div>
+          <p className="text-stone-300 text-lg font-medium">Loading your profile...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-red-400 text-center">
-          <p className="text-xl mb-4">{error}</p>
+      <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="errorBg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgba(120, 113, 108, 0.1)" />
+                <stop offset="100%" stopColor="rgba(87, 83, 81, 0.05)" />
+              </linearGradient>
+            </defs>
+            <path d="M0,400 L300,200 L600,350 L900,150 L1200,300 L1200,800 L0,800 Z" fill="url(#errorBg1)" />
+          </svg>
+        </div>
+        <div className="relative z-10 text-center bg-stone-900/50 backdrop-blur-sm rounded-2xl p-8 border border-orange-500/20">
+          <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaTimesCircle className="text-white text-2xl" />
+          </div>
+          <p className="text-xl mb-6 text-stone-200">{error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-orange-500/20"
           >
             Retry
           </button>
@@ -450,77 +480,112 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen bg-black text-stone-100 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="bgMountain1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(120, 113, 108, 0.08)" />
+              <stop offset="50%" stopColor="rgba(168, 162, 158, 0.06)" />
+              <stop offset="100%" stopColor="rgba(87, 83, 81, 0.04)" />
+            </linearGradient>
+            <linearGradient id="bgMountain2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(249, 115, 22, 0.04)" />
+              <stop offset="50%" stopColor="rgba(251, 191, 36, 0.03)" />
+              <stop offset="100%" stopColor="rgba(245, 158, 11, 0.02)" />
+            </linearGradient>
+          </defs>
+          <path d="M0,500 L200,300 L400,450 L600,250 L800,400 L1000,200 L1200,350 L1200,800 L0,800 Z" fill="url(#bgMountain1)" className="animate-[mountainFloat1_15s_ease-in-out_infinite] opacity-60" />
+          <path d="M0,600 L150,400 L350,550 L550,350 L750,500 L950,300 L1200,450 L1200,800 L0,800 Z" fill="url(#bgMountain2)" className="animate-[mountainFloat2_12s_ease-in-out_infinite_reverse] opacity-40" />
+        </svg>
+      </div>
+
       {/* Navigation Header */}
-      <nav className="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+      <nav className="bg-stone-900/80 backdrop-blur-md border-b border-orange-500/20 sticky top-0 z-50 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <FaMapMarkedAlt className="text-green-500 text-2xl" />
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600">
+              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <FaMapMarkedAlt className="text-white text-xl" />
+              </div>
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">
                 OffroadX
               </span>
             </div>
 
             {/* Navigation Links */}
             <div className="hidden md:flex items-center space-x-8">
-              <Link to="/home" className="text-gray-300 hover:text-green-400 transition flex items-center space-x-1">
+              <Link to="/home" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-orange-500/10">
                 <FaHome className="text-sm" />
-                <span>Home</span>
+                <span className="font-medium">Home</span>
               </Link>
-              <Link to="/events" className="text-gray-300 hover:text-green-400 transition flex items-center space-x-1">
+              <Link to="/events" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-orange-500/10">
                 <FaCalendarAlt className="text-sm" />
-                <span>Events</span>
+                <span className="font-medium">Events</span>
               </Link>
-              <Link to="/routes" className="text-gray-300 hover:text-green-400 transition flex items-center space-x-1">
+              <Link to="/routes" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-orange-500/10">
                 <FaRoute className="text-sm" />
-                <span>Routes</span>
+                <span className="font-medium">Routes</span>
               </Link>
             </div>
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
-                          <button className="text-gray-300 hover:text-green-400 transition">
-                            <FaBell className="text-xl" />
-                          </button>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                              <FaUser className="text-white text-sm" />
-                            </div>
-                            <div className="hidden md:block">
-                              <p className="text-sm font-medium text-white">{user.firstName} {user.secondName}</p>
-                              <Link to="/profile" className="text-xs text-gray-400 hover:text-green-400 transition">View Profile</Link>
-                            </div>
-                            <button
-                              onClick={handleLogout}
-                              className="text-gray-300 hover:text-red-400 transition"
-                              title="Logout"
-                            >
-                              <FaSignOutAlt />
-                            </button>
-                          </div>
-                        </div>
+              <button className="text-stone-300 hover:text-orange-400 transition-all duration-300 p-2 rounded-lg hover:bg-orange-500/10">
+                <FaBell className="text-xl" />
+              </button>
+              <div className="flex items-center space-x-3">
+                {profileData?.profilePhotoUrl ? (
+                  <img
+                    src={profileData.profilePhotoUrl}
+                    alt="Profile"
+                    className="w-10 h-10 rounded-full object-cover border-2 border-orange-500/50 shadow-lg shadow-orange-500/20"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-500/20">
+                    <FaUser className="text-white text-sm" />
+                  </div>
+                )}
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-stone-100">{user.firstName} {user.secondName}</p>
+                  <Link to="/profile" className="text-xs text-stone-400 hover:text-orange-400 transition-all duration-300">View Profile</Link>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-stone-300 hover:text-red-400 transition-all duration-300 p-2 rounded-lg hover:bg-red-500/10"
+                  title="Logout"
+                >
+                  <FaSignOutAlt />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </nav>
 
       {/* Success Message */}
       {successMessage && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-          <div className="bg-green-900 border border-green-700 text-green-300 px-4 py-3 rounded-lg flex items-center space-x-2">
-            <FaCheckCircle />
-            <span>{successMessage}</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 relative z-10">
+          <div className="bg-gradient-to-r from-orange-500/20 to-amber-600/20 backdrop-blur-sm border border-orange-500/30 text-orange-200 px-6 py-4 rounded-xl flex items-center space-x-3 shadow-lg shadow-orange-500/10">
+            <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center">
+              <FaCheckCircle className="text-white text-sm" />
+            </div>
+            <span className="font-medium">{successMessage}</span>
           </div>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {/* Profile Header */}
         <div className="mb-8">
-          <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-8 text-white relative overflow-hidden">
-            <div className="absolute inset-0 bg-black opacity-10"></div>
+          <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-3xl p-8 text-white relative overflow-hidden border border-orange-500/20 shadow-2xl shadow-orange-500/10">
+            {/* Decorative Elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-amber-600/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-500/5 to-amber-600/5 rounded-full blur-2xl"></div>
+            
             <div className="relative z-10 flex items-center space-x-6">
               <div className="relative">
                 {/* Avatar or user icon */}
@@ -528,11 +593,11 @@ function Profile() {
                   <img
                     src={profileData.profilePhotoUrl}
                     alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover border-4 border-white/30"
+                    className="w-28 h-28 rounded-2xl object-cover border-4 border-orange-500/30 shadow-lg shadow-orange-500/20"
                   />
                 ) : (
-                  <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                    <FaUser className="text-4xl text-white" />
+                  <div className="w-28 h-28 bg-gradient-to-br from-orange-500/20 to-amber-600/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-orange-500/30">
+                    <FaUser className="text-4xl text-orange-300" />
                   </div>
                 )}
 
@@ -541,7 +606,7 @@ function Profile() {
                   <button
                     onClick={handleChoosePhoto}
                     disabled={photoUploading}
-                    className="bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white text-xs px-3 py-1 rounded-full shadow"
+                    className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 disabled:from-orange-700 disabled:to-amber-800 text-white text-xs px-3 py-2 rounded-xl shadow-lg shadow-orange-500/20 transition-all duration-300 font-medium"
                   >
                     {photoUploading ? 'Uploading...' : 'Change'}
                   </button>
@@ -549,7 +614,7 @@ function Profile() {
                     <button
                       onClick={handleRemovePhoto}
                       disabled={photoUploading}
-                      className="bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white text-xs px-3 py-1 rounded-full shadow"
+                      className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-red-700 disabled:to-red-800 text-white text-xs px-3 py-2 rounded-xl shadow-lg shadow-red-500/20 transition-all duration-300 font-medium"
                     >
                       Remove
                     </button>
@@ -565,47 +630,55 @@ function Profile() {
                   className="hidden"
                 />
               </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              <div className="flex-1">
+                <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-orange-300 to-amber-400">
                   {isEditing ? `${editFormData.firstName} ${editFormData.secondName}` : `${profileData?.firstName} ${profileData?.secondName}`}
                 </h1>
-                <p className="text-green-100 text-lg mb-2">
-                  {isEditing ? editFormData.email : profileData?.email}
+                <p className="text-stone-200 text-lg mb-4 flex items-center space-x-2">
+                  <FaEnvelope className="text-orange-400" />
+                  <span>{isEditing ? editFormData.email : profileData?.email}</span>
                 </p>
-                <div className="flex items-center space-x-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getRoleColor(profileData?.role)}`}>
+                <div className="flex items-center space-x-4 flex-wrap gap-2">
+                  <span className="px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-orange-500/20 to-amber-600/20 border border-orange-500/30 text-orange-200 backdrop-blur-sm">
                     {profileData?.role?.toUpperCase()}
                   </span>
-                  <span className={`flex items-center space-x-1 ${profileData?.isEmailVerified ? 'text-green-300' : 'text-red-300'}`}>
+                  <span className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium backdrop-blur-sm ${
+                    profileData?.isEmailVerified 
+                      ? 'bg-gradient-to-r from-green-500/20 to-emerald-600/20 border border-green-500/30 text-green-200' 
+                      : 'bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 text-red-200'
+                  }`}>
                     {profileData?.isEmailVerified ? <FaCheckCircle /> : <FaTimesCircle />}
-                    <span className="text-sm">
+                    <span>
                       {profileData?.isEmailVerified ? 'Email Verified' : 'Email Not Verified'}
                     </span>
                   </span>
                 </div>
                 {photoError && (
-                  <div className="mt-2 text-sm text-red-200 bg-red-900/40 border border-red-700 px-3 py-2 rounded">
+                  <div className="mt-4 text-sm text-red-200 bg-gradient-to-r from-red-500/20 to-red-600/20 backdrop-blur-sm border border-red-500/30 px-4 py-3 rounded-xl">
                     {photoError}
                   </div>
                 )}
               </div>
             </div>
-            {/* Decorative Elements */}
-            <div className="absolute top-4 right-4 text-6xl opacity-20">👤</div>
           </div>
         </div>
 
         {/* Driving License (PDF) */}
-        <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 mb-8">
-          <h3 className="text-lg font-semibold text-white mb-3 flex items-center space-x-2">
-            <FaShieldAlt className="text-green-400" />
-            <span>Driving License (PDF)</span>
+        <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-2xl border border-orange-500/20 p-6 mb-8 shadow-lg shadow-orange-500/5">
+          <h3 className="text-xl font-bold text-white mb-4 flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+              <FaShieldAlt className="text-white" />
+            </div>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Driving License (PDF)</span>
           </h3>
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="text-sm text-gray-300">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="text-sm text-stone-300">
               {profileData?.licenseDocUrl ? (
-                <div className="space-y-1">
-                  <p className="text-green-300">License on file</p>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full"></div>
+                    <p className="text-green-300 font-medium">License on file</p>
+                  </div>
                   <a
                     href="#"
                     onClick={async (e) => {
@@ -631,20 +704,23 @@ function Profile() {
                         setLicenseError(err.message || 'Failed to get download URL');
                       }
                     }}
-                    className="text-blue-400 hover:underline"
+                    className="text-orange-400 hover:text-orange-300 transition-colors duration-300 font-medium hover:underline"
                   >
                     Download current license
                   </a>
                 </div>
               ) : (
-                <p className="text-gray-400">No license uploaded</p>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-gradient-to-r from-stone-500 to-stone-600 rounded-full"></div>
+                  <p className="text-stone-400">No license uploaded</p>
+                </div>
               )}
             </div>
             <div className="flex items-center space-x-3">
               <button
                 onClick={handleChooseLicense}
                 disabled={licenseUploading}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white text-sm px-4 py-2 rounded-lg"
+                className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 disabled:from-orange-700 disabled:to-amber-800 text-white text-sm px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-orange-500/20"
               >
                 {licenseUploading ? 'Uploading...' : (profileData?.licenseDocUrl ? 'Replace PDF' : 'Upload PDF')}
               </button>
@@ -652,7 +728,7 @@ function Profile() {
                 <button
                   onClick={handleRemoveLicense}
                   disabled={licenseUploading}
-                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white text-sm px-4 py-2 rounded-lg"
+                  className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 disabled:from-red-700 disabled:to-red-800 text-white text-sm px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-red-500/20"
                 >
                   Remove
                 </button>
@@ -660,7 +736,7 @@ function Profile() {
             </div>
           </div>
           {licenseError && (
-            <div className="mt-3 text-sm text-red-200 bg-red-900/40 border border-red-700 px-3 py-2 rounded">
+            <div className="mt-4 text-sm text-red-200 bg-gradient-to-r from-red-500/20 to-red-600/20 backdrop-blur-sm border border-red-500/30 px-4 py-3 rounded-xl">
               {licenseError}
             </div>
           )}
@@ -679,17 +755,19 @@ function Profile() {
             {/* Vehicles */}
             <VehiclesSection />
             {/* Basic Information */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-700">
+            <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-2xl border border-orange-500/20 overflow-hidden shadow-lg shadow-orange-500/5">
+              <div className="p-6 border-b border-orange-500/20">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-                    <FaUser className="text-green-500" />
-                    <span>Personal Information</span>
+                  <h2 className="text-xl font-bold text-white flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                      <FaUser className="text-white" />
+                    </div>
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Personal Information</span>
                   </h2>
                   {!isEditing && (
                     <button
                       onClick={handleEditClick}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center space-x-2"
+                      className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center space-x-2 font-medium shadow-lg shadow-orange-500/20"
                     >
                       <FaEdit className="text-sm" />
                       <span>Edit</span>
@@ -697,11 +775,12 @@ function Profile() {
                   )}
                 </div>
               </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">
-                      First Name {isEditing && <span className="text-red-400">*</span>}
+                    <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full"></div>
+                      <span>First Name {isEditing && <span className="text-red-400">*</span>}</span>
                     </label>
                     {isEditing ? (
                       <input
@@ -709,19 +788,20 @@ function Profile() {
                         name="firstName"
                         value={editFormData.firstName}
                         onChange={handleInputChange}
-                        className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+                        className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                         placeholder="Enter first name"
                         required
                       />
                     ) : (
-                      <div className="bg-gray-900 rounded-lg p-3 text-white">
+                      <div className="bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-xl p-4 text-white">
                         {profileData?.firstName || 'N/A'}
                       </div>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">
-                      Last Name {isEditing && <span className="text-red-400">*</span>}
+                    <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full"></div>
+                      <span>Last Name {isEditing && <span className="text-red-400">*</span>}</span>
                     </label>
                     {isEditing ? (
                       <input
@@ -729,20 +809,20 @@ function Profile() {
                         name="secondName"
                         value={editFormData.secondName}
                         onChange={handleInputChange}
-                        className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+                        className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                         placeholder="Enter last name"
                         required
                       />
                     ) : (
-                      <div className="bg-gray-900 rounded-lg p-3 text-white">
+                      <div className="bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-xl p-4 text-white">
                         {profileData?.secondName || 'N/A'}
                       </div>
                     )}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1 flex items-center space-x-1">
-                    <FaEnvelope className="text-sm" />
+                  <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                    <FaEnvelope className="text-orange-400" />
                     <span>Email Address {isEditing && <span className="text-red-400">*</span>}</span>
                   </label>
                   {isEditing ? (
@@ -751,19 +831,19 @@ function Profile() {
                       name="email"
                       value={editFormData.email}
                       onChange={handleInputChange}
-                      className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+                      className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                       placeholder="Enter email address"
                       required
                     />
                   ) : (
-                    <div className="bg-gray-900 rounded-lg p-3 text-white">
+                    <div className="bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-xl p-4 text-white">
                       {profileData?.email || 'N/A'}
                     </div>
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1 flex items-center space-x-1">
-                    <FaPhone className="text-sm" />
+                  <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                    <FaPhone className="text-orange-400" />
                     <span>Phone Number</span>
                   </label>
                   {isEditing ? (
@@ -772,11 +852,11 @@ function Profile() {
                       name="phone"
                       value={editFormData.phone}
                       onChange={handleInputChange}
-                      className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+                      className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                       placeholder="Enter phone number"
                     />
                   ) : (
-                    <div className="bg-gray-900 rounded-lg p-3 text-white">
+                    <div className="bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-xl p-4 text-white">
                       {profileData?.phone || 'N/A'}
                     </div>
                   )}
@@ -784,71 +864,83 @@ function Profile() {
                 
                 {/* Password Change Section */}
                 {isEditing && (
-                  <div className="border-t border-gray-700 pt-6 mt-6">
-                    <h3 className="text-lg font-medium text-white mb-4 flex items-center space-x-2">
-                      <FaShieldAlt className="text-yellow-500" />
-                      <span>Change Password (Optional)</span>
+                  <div className="border-t border-orange-500/20 pt-6 mt-6">
+                    <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <FaShieldAlt className="text-white" />
+                      </div>
+                      <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Change Password (Optional)</span>
                     </h3>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">
-                          Current Password
+                        <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full"></div>
+                          <span>Current Password</span>
                         </label>
                         <input
                           type="password"
                           name="currentPassword"
                           value={editFormData.currentPassword}
                           onChange={handleInputChange}
-                          className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+                          className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                           placeholder="Enter current password"
                         />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-medium text-gray-400 mb-2">
-                            New Password
+                          <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full"></div>
+                            <span>New Password</span>
                           </label>
                           <input
                             type="password"
                             name="newPassword"
                             value={editFormData.newPassword}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+                            className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                             placeholder="Enter new password (min 6 chars)"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-400 mb-2">
-                            Confirm New Password
+                          <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full"></div>
+                            <span>Confirm New Password</span>
                           </label>
                           <input
                             type="password"
                             name="confirmPassword"
                             value={editFormData.confirmPassword}
                             onChange={handleInputChange}
-                            className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white focus:border-green-500 focus:outline-none"
+                            className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
                             placeholder="Confirm new password"
                           />
                         </div>
                       </div>
-                      <div className="text-sm text-gray-400 bg-gray-800 p-3 rounded-lg">
-                        <p>💡 <strong>Password Change Tips:</strong></p>
-                        <p>• Leave password fields empty if you don't want to change your password</p>
-                        <p>• New password must be at least 6 characters long</p>
-                        <p>• Use a mix of uppercase, lowercase, numbers, and special characters for better security</p>
+                      <div className="bg-gradient-to-r from-orange-500/10 to-amber-600/10 backdrop-blur-sm border border-orange-500/20 p-6 rounded-2xl">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-white text-sm">💡</span>
+                          </div>
+                          <div className="text-sm text-stone-300 space-y-2">
+                            <p className="font-semibold text-orange-300">Password Change Tips:</p>
+                            <p>• Leave password fields empty if you don't want to change your password</p>
+                            <p>• New password must be at least 6 characters long</p>
+                            <p>• Use a mix of uppercase, lowercase, numbers, and special characters for better security</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
                 {isEditing && (
-                  <div className="flex space-x-4 pt-4">
+                  <div className="flex space-x-4 pt-6">
                     <button
                       onClick={handleUpdateProfile}
                       disabled={updateLoading}
-                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2"
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 disabled:from-orange-700 disabled:to-amber-800 text-white py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-medium shadow-lg shadow-orange-500/20"
                     >
                       {updateLoading ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
                       ) : (
                         <>
                           <FaSave />
@@ -859,7 +951,7 @@ function Profile() {
                     <button
                       onClick={handleCancelEdit}
                       disabled={updateLoading}
-                      className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 text-white py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2"
+                      className="flex-1 bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 disabled:from-stone-800 disabled:to-stone-900 text-white py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-medium shadow-lg shadow-stone-500/20"
                     >
                       <FaTimes />
                       <span>Cancel</span>
@@ -870,44 +962,54 @@ function Profile() {
             </div>
 
             {/* Account Information */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-700">
-                <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-                  <FaShieldAlt className="text-blue-500" />
-                  <span>Account Information</span>
+            <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-2xl border border-orange-500/20 overflow-hidden shadow-lg shadow-orange-500/5">
+              <div className="p-6 border-b border-orange-500/20">
+                <h2 className="text-xl font-bold text-white flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                    <FaShieldAlt className="text-white" />
+                  </div>
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Account Information</span>
                 </h2>
               </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1 flex items-center space-x-1">
-                      <FaUserTag className="text-sm" />
+                    <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                      <FaUserTag className="text-orange-400" />
                       <span>Account Role</span>
                     </label>
-                    <div className={`rounded-lg p-3 ${getRoleColor(profileData?.role)}`}>
+                    <div className="bg-gradient-to-r from-orange-500/20 to-amber-600/20 backdrop-blur-sm border border-orange-500/30 text-orange-200 rounded-xl p-4 font-medium">
                       {profileData?.role?.toUpperCase() || 'N/A'}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Email Verification</label>
-                    <div className={`rounded-lg p-3 flex items-center space-x-2 ${
-                      profileData?.isEmailVerified ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'
+                    <label className="block text-sm font-medium text-stone-300 mb-2">Email Verification</label>
+                    <div className={`rounded-xl p-4 flex items-center space-x-2 backdrop-blur-sm font-medium ${
+                      profileData?.isEmailVerified 
+                        ? 'bg-gradient-to-r from-green-500/20 to-emerald-600/20 border border-green-500/30 text-green-200' 
+                        : 'bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 text-red-200'
                     }`}>
                       {profileData?.isEmailVerified ? <FaCheckCircle /> : <FaTimesCircle />}
                       <span>{profileData?.isEmailVerified ? 'Verified' : 'Not Verified'}</span>
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Account Created</label>
-                    <div className="bg-gray-900 rounded-lg p-3 text-white">
+                    <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                      <FaClock className="text-orange-400" />
+                      <span>Account Created</span>
+                    </label>
+                    <div className="bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-xl p-4 text-white">
                       {formatDate(profileData?.createdAt)}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Last Updated</label>
-                    <div className="bg-gray-900 rounded-lg p-3 text-white">
+                    <label className="block text-sm font-medium text-stone-300 mb-2 flex items-center space-x-2">
+                      <FaHistory className="text-orange-400" />
+                      <span>Last Updated</span>
+                    </label>
+                    <div className="bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-xl p-4 text-white">
                       {formatDate(profileData?.updatedAt)}
                     </div>
                   </div>
@@ -916,27 +1018,33 @@ function Profile() {
             </div>
 
             {/* Security Information */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-              <div className="p-6 border-b border-gray-700">
-                <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-                  <FaShieldAlt className="text-red-500" />
-                  <span>Security Status</span>
+            <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-2xl border border-orange-500/20 overflow-hidden shadow-lg shadow-orange-500/5">
+              <div className="p-6 border-b border-orange-500/20">
+                <h2 className="text-xl font-bold text-white flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-500/20">
+                    <FaShieldAlt className="text-white" />
+                  </div>
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-red-500">Security Status</span>
                 </h2>
               </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Failed Login Attempts</label>
-                    <div className={`rounded-lg p-3 ${
-                      (profileData?.failedLoginAttempts || 0) > 0 ? 'bg-yellow-900 text-yellow-300' : 'bg-green-900 text-green-300'
+                    <label className="block text-sm font-medium text-stone-300 mb-2">Failed Login Attempts</label>
+                    <div className={`rounded-xl p-4 backdrop-blur-sm font-medium ${
+                      (profileData?.failedLoginAttempts || 0) > 0 
+                        ? 'bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-200' 
+                        : 'bg-gradient-to-r from-green-500/20 to-emerald-600/20 border border-green-500/30 text-green-200'
                     }`}>
                       {profileData?.failedLoginAttempts || 0}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Account Status</label>
-                    <div className={`rounded-lg p-3 flex items-center space-x-2 ${
-                      profileData?.isBlocked ? 'bg-red-900 text-red-300' : 'bg-green-900 text-green-300'
+                    <label className="block text-sm font-medium text-stone-300 mb-2">Account Status</label>
+                    <div className={`rounded-xl p-4 flex items-center space-x-2 backdrop-blur-sm font-medium ${
+                      profileData?.isBlocked 
+                        ? 'bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 text-red-200' 
+                        : 'bg-gradient-to-r from-green-500/20 to-emerald-600/20 border border-green-500/30 text-green-200'
                     }`}>
                       {profileData?.isBlocked ? <FaTimesCircle /> : <FaCheckCircle />}
                       <span>{profileData?.isBlocked ? 'Blocked' : 'Active'}</span>
@@ -945,8 +1053,8 @@ function Profile() {
                 </div>
                 {profileData?.isBlocked && profileData?.blockExpiry && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Block Expires</label>
-                    <div className="bg-red-900 text-red-300 rounded-lg p-3">
+                    <label className="block text-sm font-medium text-stone-300 mb-2">Block Expires</label>
+                    <div className="bg-gradient-to-r from-red-500/20 to-red-600/20 backdrop-blur-sm border border-red-500/30 text-red-200 rounded-xl p-4 font-medium">
                       {formatDate(profileData.blockExpiry)}
                     </div>
                   </div>
@@ -958,44 +1066,48 @@ function Profile() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Event Participation */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
-                <FaCalendarAlt className="text-green-400" />
-                <span>Event Participation</span>
+            <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-2xl border border-orange-500/20 p-6 shadow-lg shadow-orange-500/5">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                  <FaCalendarAlt className="text-white" />
+                </div>
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Event Participation</span>
               </h3>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-400 mb-2">
+                <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500 mb-3">
                   {profileData?.eventParticipations?.length || 0}
                 </div>
-                <p className="text-gray-400 text-sm">Events Joined</p>
+                <p className="text-stone-300 text-sm font-medium">Events Joined</p>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
-                <FaEdit className="text-purple-400" />
-                <span>Quick Actions</span>
+            <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-2xl border border-orange-500/20 p-6 shadow-lg shadow-orange-500/5">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                  <FaEdit className="text-white" />
+                </div>
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Quick Actions</span>
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <button 
                   onClick={handleEditClick}
                   disabled={isEditing}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2"
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 disabled:from-orange-700 disabled:to-amber-800 text-white py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-medium shadow-lg shadow-orange-500/20"
                 >
                   <FaEdit />
                   <span>{isEditing ? 'Editing...' : 'Edit Profile'}</span>
                 </button>
                 <Link 
                   to="/events" 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2"
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-medium shadow-lg shadow-blue-500/20"
                 >
                   <FaCalendarAlt />
                   <span>Browse Events</span>
                 </Link>
                 <Link 
                   to="/home" 
-                  className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2"
+                  className="w-full bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 font-medium shadow-lg shadow-stone-500/20"
                 >
                   <FaArrowLeft />
                   <span>Back to Home</span>
@@ -1004,25 +1116,27 @@ function Profile() {
             </div>
 
             {/* Account Summary */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
-                <FaHistory className="text-yellow-400" />
-                <span>Account Summary</span>
+            <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-2xl border border-orange-500/20 p-6 shadow-lg shadow-orange-500/5">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                  <FaHistory className="text-white" />
+                </div>
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Account Summary</span>
               </h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Member Since</span>
-                  <span className="text-white">
+              <div className="space-y-4 text-sm">
+                <div className="flex justify-between items-center p-3 bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-xl">
+                  <span className="text-stone-300 font-medium">Member Since</span>
+                  <span className="text-white font-semibold">
                     {profileData?.createdAt ? new Date(profileData.createdAt).getFullYear() : 'N/A'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Profile Completion</span>
-                  <span className="text-green-400">100%</span>
+                <div className="flex justify-between items-center p-3 bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-xl">
+                  <span className="text-stone-300 font-medium">Profile Completion</span>
+                  <span className="text-green-400 font-semibold">100%</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Security Score</span>
-                  <span className={profileData?.isEmailVerified ? 'text-green-400' : 'text-yellow-400'}>
+                <div className="flex justify-between items-center p-3 bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-xl">
+                  <span className="text-stone-300 font-medium">Security Score</span>
+                  <span className={`font-semibold ${profileData?.isEmailVerified ? 'text-green-400' : 'text-yellow-400'}`}>
                     {profileData?.isEmailVerified ? 'High' : 'Medium'}
                   </span>
                 </div>

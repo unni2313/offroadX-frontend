@@ -391,17 +391,52 @@ const handleSubmit = async (e) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex">
+    <div className="min-h-screen bg-black text-stone-100 flex relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <svg
+          className="absolute inset-0 w-full h-full opacity-30"
+          viewBox="0 0 1200 800"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="bgMountain1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(120, 113, 108, 0.08)" />
+              <stop offset="50%" stopColor="rgba(168, 162, 158, 0.06)" />
+              <stop offset="100%" stopColor="rgba(87, 83, 81, 0.04)" />
+            </linearGradient>
+            <linearGradient id="bgMountain2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(249, 115, 22, 0.04)" />
+              <stop offset="50%" stopColor="rgba(251, 191, 36, 0.03)" />
+              <stop offset="100%" stopColor="rgba(245, 158, 11, 0.02)" />
+            </linearGradient>
+          </defs>
+          
+          <path
+            d="M0,500 L200,300 L400,450 L600,250 L800,400 L1000,200 L1200,350 L1200,800 L0,800 Z"
+            fill="url(#bgMountain1)"
+            className="animate-[mountainFloat1_15s_ease-in-out_infinite] opacity-60"
+          />
+          
+          <path
+            d="M0,600 L150,400 L350,550 L550,350 L750,500 L950,300 L1200,450 L1200,800 L0,800 Z"
+            fill="url(#bgMountain2)"
+            className="animate-[mountainFloat2_12s_ease-in-out_infinite_reverse] opacity-40"
+          />
+        </svg>
+      </div>
+
       {/* Sidebar */}
      
 
       {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'} relative z-10`}>
         {/* Header */}
       
 
         {/* Events Content */}
-        <main className="p-6 pt-24">
+        <main className="p-8 pt-24">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-green-600">

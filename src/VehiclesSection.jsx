@@ -270,19 +270,21 @@ export default function VehiclesSection() {
   };
 
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+    <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-2xl border border-orange-500/20 overflow-hidden shadow-lg shadow-orange-500/5">
       {/* Header (match Profile card header) */}
-      <div className="p-6 border-b border-gray-700 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <FaCar className="text-green-500" />
-          <span>Vehicles</span>
+      <div className="p-6 border-b border-orange-500/20 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-white flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <FaCar className="text-white" />
+          </div>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Vehicles</span>
         </h2>
         {!creating ? (
           <button
             onClick={() => setCreating(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 text-sm"
+            className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center space-x-2 font-medium shadow-lg shadow-orange-500/20"
           >
-            <FaPlus /> Add Vehicle
+            <FaPlus /> <span>Add Vehicle</span>
           </button>
         ) : (
           <button
@@ -291,9 +293,9 @@ export default function VehiclesSection() {
               setForm(initialForm);
               clearCreatePhoto();
             }}
-            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 text-sm"
+            className="bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center space-x-2 font-medium shadow-lg shadow-stone-500/20"
           >
-            <FaTimes /> Cancel
+            <FaTimes /> <span>Cancel</span>
           </button>
         )}
       </div>
@@ -301,27 +303,27 @@ export default function VehiclesSection() {
       {/* Body */}
       <div className="p-6 space-y-6">
         {error && (
-          <div className="text-sm text-red-200 bg-red-900/40 border border-red-700 px-3 py-2 rounded">{error}</div>
+          <div className="text-sm text-red-200 bg-gradient-to-r from-red-500/20 to-red-600/20 backdrop-blur-sm border border-red-500/30 px-4 py-3 rounded-xl">{error}</div>
         )}
 
         {/* Create form */}
         {creating && (
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-4 grid md:grid-cols-4 gap-3">
+          <div className="bg-black/30 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 grid md:grid-cols-4 gap-4">
             {/* Photo selector + preview */}
             <div className="md:col-span-4">
-              <div className="flex items-center gap-4">
-                <div className="w-40 h-28 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="flex items-center gap-6">
+                <div className="w-44 h-32 bg-stone-900/50 border border-orange-500/30 rounded-xl flex items-center justify-center overflow-hidden backdrop-blur-sm">
                   {createPhotoPreview ? (
-                    <img src={createPhotoPreview} alt="preview" className="w-full h-full object-cover" />
+                    <img src={createPhotoPreview} alt="preview" className="w-full h-full object-cover rounded-xl" />
                   ) : (
-                    <FaImage className="text-gray-500 text-3xl" />
+                    <FaImage className="text-orange-400/50 text-4xl" />
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => createFileRef.current?.click()}
-                    className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition text-sm"
+                    className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-4 py-3 rounded-xl transition-all duration-300 text-sm font-medium shadow-lg shadow-orange-500/20"
                   >
                     Choose Photo
                   </button>
@@ -329,7 +331,7 @@ export default function VehiclesSection() {
                     <button
                       type="button"
                       onClick={clearCreatePhoto}
-                      className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition text-sm"
+                      className="bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-white px-4 py-3 rounded-xl transition-all duration-300 text-sm font-medium shadow-lg shadow-stone-500/20"
                     >
                       Remove
                     </button>
@@ -350,65 +352,65 @@ export default function VehiclesSection() {
               value={form.type}
               onChange={onChange}
               placeholder="Type (car/bike)"
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
             />
             <input
               name="make"
               value={form.make}
               onChange={onChange}
               placeholder="Make"
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
             />
             <input
               name="model"
               value={form.model}
               onChange={onChange}
               placeholder="Model"
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
             />
             <input
               name="year"
               value={form.year}
               onChange={onChange}
               placeholder="Year"
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
             />
             <input
               name="registrationNumber"
               value={form.registrationNumber}
               onChange={onChange}
               placeholder="Registration No"
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
             />
             <input
               name="color"
               value={form.color}
               onChange={onChange}
               placeholder="Color"
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
             />
             <input
               name="engineCC"
               value={form.engineCC}
               onChange={onChange}
               placeholder="Engine/CC"
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
             />
             <input
               name="seatingCapacity"
               value={form.seatingCapacity}
               onChange={onChange}
               placeholder="Seating"
-              className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+              className="w-full bg-black/30 border border-orange-500/30 rounded-xl p-4 text-white placeholder-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all duration-300 backdrop-blur-sm"
             />
 
             <div className="md:col-span-4 flex justify-end">
               <button
                 onClick={createVehicle}
                 disabled={photoUploading}
-                className="bg-green-600 hover:bg-green-700 disabled:opacity-70 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 text-sm"
+                className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 disabled:opacity-70 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center space-x-2 font-medium shadow-lg shadow-orange-500/20"
               >
-                <FaSave /> Save
+                <FaSave /> <span>Save Vehicle</span>
               </button>
             </div>
           </div>
@@ -416,21 +418,26 @@ export default function VehiclesSection() {
 
         {/* List */}
         {loading ? (
-          <div className="text-gray-400">Loading vehicles...</div>
+          <div className="text-stone-400 text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-orange-500/30 border-t-orange-500 mx-auto mb-2"></div>
+            Loading vehicles...
+          </div>
         ) : vehicles.length === 0 ? (
-          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 text-gray-300">
-            You have no vehicles yet. Click "Add Vehicle" to create one.
+          <div className="bg-black/20 backdrop-blur-sm border border-orange-500/20 rounded-2xl p-8 text-center">
+            <FaCar className="text-orange-400/50 text-4xl mx-auto mb-4" />
+            <p className="text-stone-300 text-lg font-medium mb-2">No vehicles yet</p>
+            <p className="text-stone-400">Click "Add Vehicle" to create your first one.</p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-6">
             {vehicles.map((v) => (
-              <div key={v._id} className="bg-gray-900 border border-gray-700 rounded-xl p-4">
-                <div className="flex flex-col md:flex-row items-start gap-4">
-                  <div className="w-full md:w-40 h-28 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+              <div key={v._id} className="bg-black/30 backdrop-blur-sm border border-orange-500/20 rounded-2xl p-6 shadow-lg shadow-orange-500/5">
+                <div className="flex flex-col md:flex-row items-start gap-6">
+                  <div className="w-full md:w-44 h-32 bg-stone-900/50 border border-orange-500/30 rounded-xl flex items-center justify-center overflow-hidden backdrop-blur-sm">
                     {v.photoUrl ? (
-                      <img src={v.photoUrl} alt="vehicle" className="w-full h-full object-cover" />
+                      <img src={v.photoUrl} alt="vehicle" className="w-full h-full object-cover rounded-xl" />
                     ) : (
-                      <FaImage className="text-gray-500 text-3xl" />
+                      <FaImage className="text-orange-400/50 text-4xl" />
                     )}
                   </div>
 
