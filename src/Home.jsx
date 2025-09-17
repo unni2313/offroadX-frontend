@@ -16,13 +16,16 @@ import {
   FaSun,
   FaTools,
   FaStar,
-  FaPlay
+  FaPlay,
+  FaBars,
+  FaTimes
 } from 'react-icons/fa';
 
 function Home() {
   const [user, setUser] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,6 +69,15 @@ function Home() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+    setIsMobileMenuOpen(false);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   if (!user) {
@@ -409,15 +421,15 @@ function Home() {
             {/* Logo */}
             <div className="flex items-center space-x-4 group">
               <div className="relative">
-                <FaMapMarkedAlt className="text-orange-500 text-3xl transform group-hover:scale-110 transition-all duration-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]" />
+                <FaMapMarkedAlt className="text-orange-500 text-2xl md:text-3xl transform group-hover:scale-110 transition-all duration-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]" />
                 <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
               </div>
-              <span className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 drop-shadow-2xl tracking-tight">
+              <span className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 drop-shadow-2xl tracking-tight">
                 OffroadX
               </span>
             </div>
 
-            {/* Navigation Links */}
+            {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center space-x-10">
               <Link to="/events" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
                 <FaCalendarAlt className="text-lg" />
@@ -427,38 +439,36 @@ function Home() {
                 <FaRoute className="text-lg" />
                 <span>Routes</span>
               </Link>
-              <Link to="/community" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
-                <FaUsers className="text-lg" />
-                <span>Community</span>
-              </Link>
               <Link to="/achievements" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
                 <FaTrophy className="text-lg" />
                 <span>Achievements</span>
               </Link>
             </div>
 
-            {/* User Menu */}
-            <div className="flex items-center space-x-6">
+            {/* Desktop User Menu */}
+            <div className="hidden md:flex items-center space-x-6">
               <button className="text-stone-300 hover:text-orange-400 transition-all duration-300 relative">
                 <FaBell className="text-2xl" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
               </button>
               <div className="flex items-center space-x-4">
-                {profileData?.profilePhotoUrl ? (
-                  <img
-                    src={profileData.profilePhotoUrl}
-                    alt="Profile"
-                    className="w-12 h-12 rounded-2xl object-cover border-2 border-orange-500/50 shadow-[0_8px_30px_rgba(249,115,22,0.3)]"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-[0_8px_30px_rgba(249,115,22,0.3)]">
-                    <FaUser className="text-white text-lg" />
+                <button onClick={handleProfileClick} className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
+                  {profileData?.profilePhotoUrl ? (
+                    <img
+                      src={profileData.profilePhotoUrl}
+                      alt="Profile"
+                      className="w-12 h-12 rounded-2xl object-cover border-2 border-orange-500/50 shadow-[0_8px_30px_rgba(249,115,22,0.3)]"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-[0_8px_30px_rgba(249,115,22,0.3)]">
+                      <FaUser className="text-white text-lg" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-lg font-bold text-white tracking-wide">{user.firstName} {user.secondName}</p>
+                    <p className="text-sm text-stone-400">Click to view profile</p>
                   </div>
-                )}
-                <div className="hidden md:block">
-                  <p className="text-lg font-bold text-white tracking-wide">{user.firstName} {user.secondName}</p>
-                  <Link to="/profile" className="text-sm text-stone-400 hover:text-orange-400 transition-colors duration-300 font-medium">View Profile</Link>
-                </div>
+                </button>
                 <button
                   onClick={handleLogout}
                   className="text-stone-300 hover:text-red-400 transition-all duration-300 p-2 rounded-xl hover:bg-red-500/10"
@@ -468,7 +478,81 @@ function Home() {
                 </button>
               </div>
             </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center space-x-4">
+              <button className="text-stone-300 hover:text-orange-400 transition-all duration-300 relative">
+                <FaBell className="text-xl" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+              </button>
+              <button onClick={handleProfileClick} className="hover:opacity-80 transition-opacity">
+                {profileData?.profilePhotoUrl ? (
+                  <img
+                    src={profileData.profilePhotoUrl}
+                    alt="Profile"
+                    className="w-10 h-10 rounded-xl object-cover border-2 border-orange-500/50 shadow-[0_8px_30px_rgba(249,115,22,0.3)]"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-[0_8px_30px_rgba(249,115,22,0.3)]">
+                    <FaUser className="text-white text-sm" />
+                  </div>
+                )}
+              </button>
+              <button
+                onClick={toggleMobileMenu}
+                className="text-stone-300 hover:text-orange-400 transition-all duration-300 p-2"
+              >
+                {isMobileMenuOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
+              </button>
+            </div>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden absolute top-full left-0 right-0 bg-gradient-to-br from-stone-900/98 to-neutral-900/95 border-b border-stone-700/50 backdrop-blur-xl shadow-2xl">
+              <div className="px-4 py-6 space-y-4">
+                <Link 
+                  to="/events" 
+                  className="flex items-center space-x-3 text-stone-300 hover:text-orange-400 transition-all duration-300 py-3 px-4 rounded-xl hover:bg-stone-800/50"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <FaCalendarAlt className="text-lg" />
+                  <span className="font-semibold">Events</span>
+                </Link>
+                <Link 
+                  to="/routes" 
+                  className="flex items-center space-x-3 text-stone-300 hover:text-orange-400 transition-all duration-300 py-3 px-4 rounded-xl hover:bg-stone-800/50"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <FaRoute className="text-lg" />
+                  <span className="font-semibold">Routes</span>
+                </Link>
+                <Link 
+                  to="/achievements" 
+                  className="flex items-center space-x-3 text-stone-300 hover:text-orange-400 transition-all duration-300 py-3 px-4 rounded-xl hover:bg-stone-800/50"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <FaTrophy className="text-lg" />
+                  <span className="font-semibold">Achievements</span>
+                </Link>
+                <div className="border-t border-stone-700/50 pt-4 mt-4">
+                  <div className="flex items-center space-x-3 py-3 px-4">
+                    <div className="text-stone-300">
+                      <p className="font-bold text-white">{user.firstName} {user.secondName}</p>
+                      <p className="text-sm text-stone-400">Welcome back!</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-3 text-red-400 hover:text-red-300 transition-all duration-300 py-3 px-4 rounded-xl hover:bg-red-500/10 w-full"
+                  >
+                    <FaSignOutAlt className="text-lg" />
+                    <span className="font-semibold">Logout</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 

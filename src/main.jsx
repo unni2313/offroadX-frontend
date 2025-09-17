@@ -16,6 +16,9 @@ import ProtectedRoute from './ProtectedRoute.jsx'
 import Profile from './Profile.jsx'
 import Participants from './Participants.jsx'
 import AdminUserProfile from './AdminUserProfile.jsx'
+import AdminTrails from './AdminTrails.jsx'
+import UserRoutes from './UserRoutes.jsx'
+import Troutes from './Troutes.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -43,12 +46,19 @@ createRoot(document.getElementById('root')).render(
           <Route index element={<DashboardOverview />} />
           <Route path="events" element={<Events />} />
           <Route path="participants" element={<Participants />} />
+          <Route path="routes" element={<AdminTrails />} />
           <Route path="users/:id" element={<AdminUserProfile />} />
         </Route>
 
         <Route path="/events" element={
           <ProtectedRoute requiredRole="user">
             <UserEvents />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/routes" element={
+          <ProtectedRoute requiredRole="user">
+            <Troutes />
           </ProtectedRoute>
         } />
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, NavLink, Outlet } from 'react-router-dom'
-import { FaSignOutAlt, FaUsers, FaCalendarAlt, FaChartLine, FaMapMarkedAlt, FaCog, FaBars, FaUser } from 'react-icons/fa'
+import { FaSignOutAlt, FaUsers, FaCalendarAlt, FaChartLine, FaMapMarkedAlt, FaCog, FaBars, FaUser, FaRoute } from 'react-icons/fa'
 
 // Default dashboard overview content shown at /dashboard
 export function DashboardOverview() {
@@ -8,7 +8,7 @@ export function DashboardOverview() {
   const dashboardStats = [
     { title: 'Upcoming Events', value: 5, icon: <FaCalendarAlt className="text-green-500" /> },
     { title: 'Total Participants', value: 128, icon: <FaUsers className="text-blue-500" /> },
-    { title: 'Routes Planned', value: 12, icon: <FaMapMarkedAlt className="text-yellow-500" /> },
+    { title: 'Trail Routes', value: 5, icon: <FaRoute className="text-orange-500" /> },
     { title: 'Engagement Rate', value: '78%', icon: <FaChartLine className="text-purple-500" /> }
   ]
 
@@ -78,12 +78,19 @@ export function DashboardOverview() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
           <h3 className="font-bold mb-3">Create New Event</h3>
           <p className="text-gray-400 text-sm mb-4">Plan your next offroad adventure</p>
           <button className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 rounded-lg hover:from-green-500 hover:to-green-600 transition">
             Start Planning
+          </button>
+        </div>
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <h3 className="font-bold mb-3">Manage Trail Routes</h3>
+          <p className="text-gray-400 text-sm mb-4">Add and manage offroad trail routes</p>
+          <button className="w-full bg-gradient-to-r from-orange-600 to-amber-700 text-white py-2 px-4 rounded-lg hover:from-orange-500 hover:to-amber-600 transition">
+            Manage Routes
           </button>
         </div>
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
@@ -180,15 +187,15 @@ function Dashboard() {
             </li>
             <li>
               <NavLink
-                to="/routes"
+                to="/dashboard/routes"
                 className={({ isActive }) =>
                   `flex items-center space-x-3 p-3 rounded-lg transition ${
                     isActive ? 'bg-gray-700 text-white' : 'hover:bg-gray-700 text-gray-300 hover:text-white'
                   }`
                 }
               >
-                <FaMapMarkedAlt />
-                <span>Routes</span>
+                <FaRoute />
+                <span>Trail Routes</span>
               </NavLink>
             </li>
             <li>

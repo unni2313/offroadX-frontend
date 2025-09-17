@@ -272,7 +272,7 @@ export default function VehiclesSection() {
   return (
     <div className="bg-gradient-to-br from-stone-900/80 to-stone-800/80 backdrop-blur-md rounded-2xl border border-orange-500/20 overflow-hidden shadow-lg shadow-orange-500/5">
       {/* Header (match Profile card header) */}
-      <div className="p-6 border-b border-orange-500/20 flex items-center justify-between">
+      <div className="p-6 border-b border-orange-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-xl font-bold text-white flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
             <FaCar className="text-white" />
@@ -311,7 +311,7 @@ export default function VehiclesSection() {
           <div className="bg-black/30 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 grid md:grid-cols-4 gap-4">
             {/* Photo selector + preview */}
             <div className="md:col-span-4">
-              <div className="flex items-center gap-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                 <div className="w-44 h-32 bg-stone-900/50 border border-orange-500/30 rounded-xl flex items-center justify-center overflow-hidden backdrop-blur-sm">
                   {createPhotoPreview ? (
                     <img src={createPhotoPreview} alt="preview" className="w-full h-full object-cover rounded-xl" />
