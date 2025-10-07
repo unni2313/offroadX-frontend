@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { showSuccess, showError, showWarning, showConfirm } from './utils/sweetAlert';
+import { validateName, validatePhone, formatName, formatPhoneNumber } from './utils/validation';
 import { 
   FaMapMarkedAlt, 
   FaUser, 
@@ -28,7 +29,8 @@ import {
   FaInfoCircle,
   FaArrowLeft,
   FaBars,
-  FaTimes
+  FaTimes,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 
 function UserEvents() {
@@ -50,9 +52,29 @@ function UserEvents() {
     medicalConditions: '',
     experienceLevel: 'beginner',
     additionalNotes: '',
-    vehicles: []
+    vehicles: [],
+    races: []
   });
+  const [racesByEvent, setRacesByEvent] = useState({});
+  const [racesLoading, setRacesLoading] = useState(false);
+  const [userVehicles, setUserVehicles] = useState([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(false);
+  const [raceVehicleSelections, setRaceVehicleSelections] = useState({}); // { [raceId]: string[] }
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({
+    emergencyContact: {
+      name: '',
+      phone: '',
+      relationship: ''
+    }
+  });
+  const [touchedFields, setTouchedFields] = useState({
+    emergencyContact: {
+      name: false,
+      phone: false,
+      relationship: false
+    }
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -151,9 +173,29 @@ function UserEvents() {
     }
   };
 
-  const handleRegisterEvent = (eventId) => {
+  const fetchUserVehicles = async () => {
+    try {
+      setVehiclesLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const res = await fetch('http://localhost:5000/api/vehicles', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserVehicles(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      console.error('Error fetching user vehicles:', e);
+    } finally {
+      setVehiclesLoading(false);
+    }
+  };
+
+  const handleRegisterEvent = async (eventId) => {
     const event = events.find(e => e._id === eventId);
-    
     if (!event) return;
 
     // Check if user already has a registration for this event
@@ -164,7 +206,6 @@ function UserEvents() {
         approved: 'You are already approved for this event.',
         rejected: 'Your registration was rejected. You can apply again.'
       };
-      
       if (existingRegistration.status !== 'rejected') {
         showWarning('Already Registered', statusMessages[existingRegistration.status]);
         return;
@@ -177,7 +218,41 @@ function UserEvents() {
       return;
     }
 
+    // Fetch races for this event (if not already cached)
+    let fetchedRaces = racesByEvent[eventId] || null;
+    try {
+      setRacesLoading(true);
+      if (!fetchedRaces) {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:5000/api/races/event/${eventId}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const data = await res.json();
+          fetchedRaces = data.races || [];
+          setRacesByEvent(prev => ({ ...prev, [eventId]: fetchedRaces }));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load races for event', e);
+    } finally {
+      setRacesLoading(false);
+    }
+
+    // Enforce: at least one race must exist to proceed
+    const availableRaces = fetchedRaces || racesByEvent[eventId] || [];
+    if (!availableRaces.length) {
+      showWarning('No Races Available', 'Registration requires selecting at least one race, but none are available for this event.');
+      return;
+    }
+
     setSelectedEvent(event);
+    // Reset races selection each time user opens form
+    setRegistrationFormData(prev => ({ ...prev, races: [] }));
+    setRaceVehicleSelections({});
+    if (!userVehicles.length) {
+      await fetchUserVehicles();
+    }
     setShowRegistrationForm(true);
   };
 
@@ -185,6 +260,37 @@ function UserEvents() {
     e.preventDefault();
     
     if (!selectedEvent) return;
+
+    // Validate all fields before submission
+    if (!validateAllFields()) {
+      showWarning('Validation Error', 'Please fix all validation errors before submitting');
+      return;
+    }
+
+    // Frontend validation: require at least one race selected
+    if (!Array.isArray(registrationFormData.races) || registrationFormData.races.length === 0) {
+      showWarning('Race Selection Required', 'Please select at least one race to register.');
+      return;
+    }
+
+    // Require at least one vehicle from profile
+    if (!Array.isArray(userVehicles) || userVehicles.length === 0) {
+      showWarning('No Vehicles Found', 'Add a vehicle to your profile before registering.');
+      return;
+    }
+
+    // For each selected race, require at least one vehicle selected
+    for (const raceId of registrationFormData.races) {
+      const vehiclesForRace = raceVehicleSelections[raceId] || [];
+      if (!vehiclesForRace.length) {
+        showWarning('Vehicle Required', 'Please select at least one vehicle for every selected race.');
+        return;
+      }
+    }
+
+    // Prepare union of vehicles across races to send to backend
+    const unionVehicles = Array.from(new Set(Object.values(raceVehicleSelections).flat()))
+      .filter(Boolean);
 
     try {
       const token = localStorage.getItem('token');
@@ -194,7 +300,12 @@ function UserEvents() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(registrationFormData)
+        body: JSON.stringify({
+          ...registrationFormData,
+          vehicles: unionVehicles,
+          // send detailed mapping too (backend may ignore)
+          vehiclesByRace: raceVehicleSelections
+        })
       });
 
       if (response.ok) {
@@ -209,8 +320,10 @@ function UserEvents() {
           medicalConditions: '',
           experienceLevel: 'beginner',
           additionalNotes: '',
-          vehicles: []
+          vehicles: [],
+          races: []
         });
+        setRaceVehicleSelections({});
         setShowRegistrationForm(false);
         setSelectedEvent(null);
 
@@ -266,8 +379,26 @@ function UserEvents() {
     }
   };
 
-  const handleViewDetails = (event) => {
+  const handleViewDetails = async (event) => {
     setSelectedEvent(event);
+    // Preload races for the event so user can see them in details modal
+    try {
+      setRacesLoading(true);
+      if (!racesByEvent[event._id]) {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:5000/api/races/event/${event._id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setRacesByEvent(prev => ({ ...prev, [event._id]: data.races || [] }));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load races for event', e);
+    } finally {
+      setRacesLoading(false);
+    }
     setShowEventDetails(true);
   };
 
@@ -310,21 +441,95 @@ function UserEvents() {
   };
 
   const handleRegistrationFormChange = (field, value) => {
+    let processedValue = value;
+
+    // Format values based on field type
+    if (field === 'emergencyContact.phone') {
+      processedValue = formatPhoneNumber(value);
+    } else if (field === 'emergencyContact.name') {
+      processedValue = formatName(value);
+    }
+
     if (field.includes('.')) {
       const [parent, child] = field.split('.');
       setRegistrationFormData(prev => ({
         ...prev,
         [parent]: {
           ...prev[parent],
-          [child]: value
+          [child]: processedValue
         }
       }));
+
+      // Mark field as touched
+      setTouchedFields(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: true
+        }
+      }));
+
+      // Validate field
+      validateField(field, processedValue);
     } else {
       setRegistrationFormData(prev => ({
         ...prev,
-        [field]: value
+        [field]: processedValue
       }));
     }
+  };
+
+  const validateField = (fieldName, value) => {
+    let validation = { isValid: true, message: '' };
+
+    switch (fieldName) {
+      case 'emergencyContact.name':
+        validation = validateName(value, 'Emergency Contact Name');
+        break;
+      case 'emergencyContact.phone':
+        validation = validatePhone(value);
+        break;
+      case 'emergencyContact.relationship':
+        if (!value || value.trim() === '') {
+          validation = { isValid: false, message: 'Relationship is required' };
+        } else if (value.trim().length < 2) {
+          validation = { isValid: false, message: 'Relationship must be at least 2 characters' };
+        } else if (value.trim().length > 50) {
+          validation = { isValid: false, message: 'Relationship is too long (maximum 50 characters)' };
+        }
+        break;
+      default:
+        break;
+    }
+
+    const [parent, child] = fieldName.split('.');
+    setValidationErrors(prev => ({
+      ...prev,
+      [parent]: {
+        ...prev[parent],
+        [child]: validation.isValid ? '' : validation.message
+      }
+    }));
+
+    return validation.isValid;
+  };
+
+  const validateAllFields = () => {
+    const fields = [
+      'emergencyContact.name',
+      'emergencyContact.phone', 
+      'emergencyContact.relationship'
+    ];
+    let allValid = true;
+
+    fields.forEach(field => {
+      const [parent, child] = field.split('.');
+      const value = registrationFormData[parent][child];
+      const isValid = validateField(field, value);
+      if (!isValid) allValid = false;
+    });
+
+    return allValid;
   };
 
   const filteredEvents = events.filter(event => {
@@ -1060,6 +1265,42 @@ function UserEvents() {
                 </div>
               </div>
 
+              {/* Races for this Event */}
+              <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20 mb-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                    <FaTrophy className="text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Races</h3>
+                </div>
+                {(() => {
+                  const races = racesByEvent[selectedEvent._id] || [];
+                  if (racesLoading) {
+                    return <p className="text-orange-400">Loading races...</p>;
+                  }
+                  if (!races.length) {
+                    return <p className="text-stone-300">No races defined for this event yet.</p>;
+                  }
+                  return (
+                    <div className="space-y-3">
+                      {races.map(r => (
+                        <div key={r._id} className="flex justify-between items-center bg-black/30 border border-orange-500/20 rounded-lg p-4">
+                          <div>
+                            <p className="text-white font-semibold">{r.name}</p>
+                            <p className="text-stone-300 text-sm">
+                              Type: <span className="text-orange-300">{r.type.replace('_',' ')}</span> • Date: {r.date} • Start: {r.startTime}
+                            </p>
+                            {r.route && (
+                              <p className="text-stone-400 text-xs">Route: {r.route.name} • {r.route.distance} km • {r.route.difficulty}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+
               {/* Action Buttons */}
               <div className="flex justify-between items-center pt-6 border-t border-orange-500/20">
                 <button
@@ -1179,9 +1420,19 @@ function UserEvents() {
                         type="text"
                         value={registrationFormData.emergencyContact.name}
                         onChange={(e) => handleRegistrationFormChange('emergencyContact.name', e.target.value)}
-                        className="w-full px-4 py-3 bg-black/30 border border-orange-500/30 rounded-xl text-white placeholder-stone-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm"
+                        className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white placeholder-stone-400 focus:outline-none focus:ring-2 transition-all duration-300 backdrop-blur-sm ${
+                          validationErrors.emergencyContact.name && touchedFields.emergencyContact.name
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                            : 'border-orange-500/30 focus:border-orange-400 focus:ring-orange-500/20'
+                        }`}
                         required
                       />
+                      {validationErrors.emergencyContact.name && touchedFields.emergencyContact.name && (
+                        <div className="mt-2 flex items-center text-red-400 text-sm">
+                          <FaExclamationTriangle className="mr-2" />
+                          {validationErrors.emergencyContact.name}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-orange-400 mb-3">
@@ -1191,9 +1442,19 @@ function UserEvents() {
                         type="tel"
                         value={registrationFormData.emergencyContact.phone}
                         onChange={(e) => handleRegistrationFormChange('emergencyContact.phone', e.target.value)}
-                        className="w-full px-4 py-3 bg-black/30 border border-orange-500/30 rounded-xl text-white placeholder-stone-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm"
+                        className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white placeholder-stone-400 focus:outline-none focus:ring-2 transition-all duration-300 backdrop-blur-sm ${
+                          validationErrors.emergencyContact.phone && touchedFields.emergencyContact.phone
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                            : 'border-orange-500/30 focus:border-orange-400 focus:ring-orange-500/20'
+                        }`}
                         required
                       />
+                      {validationErrors.emergencyContact.phone && touchedFields.emergencyContact.phone && (
+                        <div className="mt-2 flex items-center text-red-400 text-sm">
+                          <FaExclamationTriangle className="mr-2" />
+                          {validationErrors.emergencyContact.phone}
+                        </div>
+                      )}
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-orange-400 mb-3">
@@ -1204,9 +1465,19 @@ function UserEvents() {
                         value={registrationFormData.emergencyContact.relationship}
                         onChange={(e) => handleRegistrationFormChange('emergencyContact.relationship', e.target.value)}
                         placeholder="e.g., Spouse, Parent, Friend"
-                        className="w-full px-4 py-3 bg-black/30 border border-orange-500/30 rounded-xl text-white placeholder-stone-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300 backdrop-blur-sm"
+                        className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white placeholder-stone-400 focus:outline-none focus:ring-2 transition-all duration-300 backdrop-blur-sm ${
+                          validationErrors.emergencyContact.relationship && touchedFields.emergencyContact.relationship
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                            : 'border-orange-500/30 focus:border-orange-400 focus:ring-orange-500/20'
+                        }`}
                         required
                       />
+                      {validationErrors.emergencyContact.relationship && touchedFields.emergencyContact.relationship && (
+                        <div className="mt-2 flex items-center text-red-400 text-sm">
+                          <FaExclamationTriangle className="mr-2" />
+                          {validationErrors.emergencyContact.relationship}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1231,6 +1502,111 @@ function UserEvents() {
                     <option value="intermediate" className="bg-stone-900 text-stone-100 py-2">Intermediate - Some experience</option>
                     <option value="advanced" className="bg-stone-900 text-stone-100 py-2">Advanced - Experienced adventurer</option>
                   </select>
+                </div>
+
+                {/* Race Selection (optional) */}
+                <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <FaTrophy className="text-white" />
+                      </div>
+                      <label className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">
+                        Select Races (required)
+                      </label>
+                    </div>
+                    {racesLoading && <span className="text-sm text-orange-400">Loading races...</span>}
+                  </div>
+
+                  {(() => {
+                    const races = racesByEvent[selectedEvent._id] || [];
+                    if (!races.length) {
+                      return (
+                        <p className="text-stone-300">No races available for this event. Registration requires selecting at least one race.</p>
+                      );
+                    }
+                    return (
+                      <div className="space-y-3">
+                        {races.map(r => {
+                          const checked = registrationFormData.races.includes(r._id);
+                          return (
+                            <label key={r._id} className="flex items-center space-x-3 bg-black/30 border border-orange-500/20 rounded-lg p-4">
+                              <input
+                                type="checkbox"
+                                className="w-5 h-5 accent-orange-500"
+                                checked={checked}
+                                onChange={(e) => {
+                                  setRegistrationFormData(prev => {
+                                    const current = new Set(prev.races);
+                                    if (e.target.checked) {
+                                      current.add(r._id);
+                                    } else {
+                                      current.delete(r._id);
+                                    }
+                                    return { ...prev, races: Array.from(current) };
+                                  });
+                                  if (!e.target.checked) {
+                                    setRaceVehicleSelections(prev => {
+                                      const next = { ...prev };
+                                      delete next[r._id];
+                                      return next;
+                                    });
+                                  }
+                                }}
+                              />
+                              <div className="flex-1">
+                                <p className="text-white font-semibold">{r.name}</p>
+                                <p className="text-stone-300 text-sm">{r.type.replace('_',' ')} • {r.date} • {r.startTime}</p>
+                                {checked && (
+                                  <div className="mt-3">
+                                    <label className="block text-sm font-medium text-orange-400 mb-2">Select at least one vehicle for this race</label>
+                                    {vehiclesLoading ? (
+                                      <p className="text-orange-400 text-sm">Loading your vehicles...</p>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        {userVehicles.length === 0 ? (
+                                          <p className="text-red-400 text-sm">You have no vehicles. Add a vehicle in your profile first.</p>
+                                        ) : (
+                                          userVehicles.map(v => {
+                                            const selected = (raceVehicleSelections[r._id] || []).includes(v._id);
+                                            return (
+                                              <label key={v._id} className="flex items-center space-x-3 bg-black/20 border border-orange-500/10 rounded-lg p-3">
+                                                <input
+                                                  type="checkbox"
+                                                  className="w-4 h-4 accent-orange-500"
+                                                  checked={selected}
+                                                  onChange={(e) => {
+                                                    setRaceVehicleSelections(prev => {
+                                                      const current = new Set(prev[r._id] || []);
+                                                      if (e.target.checked) current.add(v._id); else current.delete(v._id);
+                                                      return { ...prev, [r._id]: Array.from(current) };
+                                                    });
+                                                  }}
+                                                />
+                                                <span className="text-stone-200 text-sm">
+                                                  {v.make} {v.model} {v.year ? `(${v.year})` : ''} • {v.registrationNumber}
+                                                </span>
+                                              </label>
+                                            );
+                                          })
+                                        )}
+                                      </div>
+                                    )}
+                                    {(!raceVehicleSelections[r._id] || raceVehicleSelections[r._id].length === 0) && (
+                                      <p className="text-red-400 text-xs mt-2">Select at least one vehicle for this race.</p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          );
+                        })}
+                        {registrationFormData.races.length === 0 && (
+                          <p className="text-red-400 text-sm">Please select at least one race to continue.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Medical Conditions */}
@@ -1289,7 +1665,12 @@ function UserEvents() {
                   
                   <button
                     type="submit"
-                    className="flex items-center space-x-3 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 hover:scale-105"
+                    disabled={Object.values(validationErrors.emergencyContact).some(error => error !== '')}
+                    className={`flex items-center space-x-3 px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-lg ${
+                      !Object.values(validationErrors.emergencyContact).some(error => error !== '')
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white shadow-orange-500/20 hover:shadow-orange-500/30 hover:scale-105'
+                        : 'bg-gradient-to-r from-stone-700 to-stone-800 text-stone-400 cursor-not-allowed shadow-stone-500/10'
+                    }`}
                   >
                     <FaUserPlus />
                     <span>Submit Registration</span>

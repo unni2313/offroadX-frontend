@@ -1,17 +1,77 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaSignInAlt, FaUserPlus, FaMapMarkedAlt } from 'react-icons/fa';
+import { FaSignInAlt, FaUserPlus, FaMapMarkedAlt, FaExclamationTriangle } from 'react-icons/fa';
+import { validateEmail } from './utils/validation';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [token, setToken] = useState('');
+  const [validationErrors, setValidationErrors] = useState({
+    email: '',
+    password: '',
+  });
+  const [touchedFields, setTouchedFields] = useState({
+    email: false,
+    password: false,
+  });
   const navigate = useNavigate();
+
+  const validateField = (fieldName, value) => {
+    let validation = { isValid: true, message: '' };
+
+    switch (fieldName) {
+      case 'email':
+        validation = validateEmail(value);
+        break;
+      case 'password':
+        if (!value || value.trim() === '') {
+          validation = { isValid: false, message: 'Password is required' };
+        }
+        break;
+      default:
+        break;
+    }
+
+    setValidationErrors(prev => ({
+      ...prev,
+      [fieldName]: validation.isValid ? '' : validation.message
+    }));
+
+    return validation.isValid;
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    setTouchedFields(prev => ({ ...prev, email: true }));
+    validateField('email', value);
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    setTouchedFields(prev => ({ ...prev, password: true }));
+    validateField('password', value);
+  };
+
+  const validateAllFields = () => {
+    const emailValid = validateField('email', email);
+    const passwordValid = validateField('password', password);
+    return emailValid && passwordValid;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate all fields before submission
+    if (!validateAllFields()) {
+      setMessage('Please fix validation errors before submitting');
+      return;
+    }
+
     try {
       const response = await axios.post('http://localhost:5000/api/login', {
         email,
@@ -82,10 +142,20 @@ function LoginForm() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-6 py-4 bg-black/60 border border-stone-600/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70"
+                  onChange={handleEmailChange}
+                  className={`w-full px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
+                    validationErrors.email && touchedFields.email
+                      ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                      : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
+                  }`}
                   required
                 />
+                {validationErrors.email && touchedFields.email && (
+                  <div className="mt-2 flex items-center text-red-400 text-sm">
+                    <FaExclamationTriangle className="mr-2" />
+                    {validationErrors.email}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -94,15 +164,30 @@ function LoginForm() {
                   type="password"
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-6 py-4 bg-black/60 border border-stone-600/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70"
+                  onChange={handlePasswordChange}
+                  className={`w-full px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
+                    validationErrors.password && touchedFields.password
+                      ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                      : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
+                  }`}
                   required
                 />
+                {validationErrors.password && touchedFields.password && (
+                  <div className="mt-2 flex items-center text-red-400 text-sm">
+                    <FaExclamationTriangle className="mr-2" />
+                    {validationErrors.password}
+                  </div>
+                )}
               </div>
 
               <button
                 type="submit"
-                className="group relative w-full bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-white py-4 px-6 rounded-2xl font-bold text-lg tracking-wide transform hover:scale-105 transition-all duration-500 shadow-[0_12px_40px_rgba(249,115,22,0.3)] hover:shadow-[0_16px_50px_rgba(249,115,22,0.5)] overflow-hidden"
+                disabled={Object.values(validationErrors).some(error => error !== '')}
+                className={`group relative w-full py-4 px-6 rounded-2xl font-bold text-lg tracking-wide transform transition-all duration-500 shadow-[0_12px_40px_rgba(249,115,22,0.3)] overflow-hidden ${
+                  !Object.values(validationErrors).some(error => error !== '')
+                    ? 'bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-white hover:scale-105 hover:shadow-[0_16px_50px_rgba(249,115,22,0.5)]'
+                    : 'bg-stone-700 text-stone-400 cursor-not-allowed'
+                }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-400 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div className="absolute inset-0 bg-white/10 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-center"></div>

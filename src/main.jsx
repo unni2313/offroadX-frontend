@@ -19,6 +19,7 @@ import AdminUserProfile from './AdminUserProfile.jsx'
 import AdminTrails from './AdminTrails.jsx'
 import UserRoutes from './UserRoutes.jsx'
 import Troutes from './Troutes.jsx'
+import Achievements from './Achievements.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -59,6 +60,12 @@ createRoot(document.getElementById('root')).render(
         <Route path="/routes" element={
           <ProtectedRoute requiredRole="user">
             <Troutes />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/achievements" element={
+          <ProtectedRoute requiredRole="user">
+            <Achievements />
           </ProtectedRoute>
         } />
 

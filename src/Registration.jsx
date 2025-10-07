@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { showSuccess, showError, showWarning, showInfo } from './utils/sweetAlert'
-import { FaUserPlus, FaSignInAlt, FaMapMarkedAlt, FaEnvelope, FaCheck, FaClock } from 'react-icons/fa'
+import { FaUserPlus, FaSignInAlt, FaMapMarkedAlt, FaEnvelope, FaCheck, FaClock, FaExclamationTriangle } from 'react-icons/fa'
+import { validateEmail, validatePhone, validateName, validatePassword, validatePasswordConfirmation, formatPhoneNumber, formatName } from './utils/validation'
 
 function Registration() {
   const [formData, setFormData] = useState({
@@ -21,10 +22,90 @@ function Registration() {
     countdown: 0,
   })
 
+  const [validationErrors, setValidationErrors] = useState({
+    firstName: '',
+    secondName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  })
+
+  const [touchedFields, setTouchedFields] = useState({
+    firstName: false,
+    secondName: false,
+    email: false,
+    phone: false,
+    password: false,
+    confirmPassword: false,
+  })
+
   const navigate = useNavigate()
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+    let processedValue = value
+
+    // Format values based on field type
+    if (name === 'phone') {
+      processedValue = formatPhoneNumber(value)
+    } else if (name === 'firstName' || name === 'secondName') {
+      processedValue = formatName(value)
+    }
+
+    setFormData({ ...formData, [name]: processedValue })
+
+    // Mark field as touched
+    setTouchedFields({ ...touchedFields, [name]: true })
+
+    // Validate field
+    validateField(name, processedValue)
+  }
+
+  const validateField = (fieldName, value) => {
+    let validation = { isValid: true, message: '' }
+
+    switch (fieldName) {
+      case 'firstName':
+        validation = validateName(value, 'First Name')
+        break
+      case 'secondName':
+        validation = validateName(value, 'Last Name')
+        break
+      case 'email':
+        validation = validateEmail(value)
+        break
+      case 'phone':
+        validation = validatePhone(value)
+        break
+      case 'password':
+        validation = validatePassword(value)
+        break
+      case 'confirmPassword':
+        validation = validatePasswordConfirmation(formData.password, value)
+        break
+      default:
+        break
+    }
+
+    setValidationErrors(prev => ({
+      ...prev,
+      [fieldName]: validation.isValid ? '' : validation.message
+    }))
+
+    return validation.isValid
+  }
+
+  const validateAllFields = () => {
+    const fields = ['firstName', 'secondName', 'email', 'phone', 'password', 'confirmPassword']
+    let allValid = true
+
+    fields.forEach(field => {
+      const isValid = validateField(field, formData[field])
+      if (!isValid) allValid = false
+    })
+
+    return allValid
   }
 
   const handleOtpChange = (e) => {
@@ -33,6 +114,15 @@ function Registration() {
 
   // Send OTP to email
   const sendOTP = async () => {
+    // Validate email and first name before sending OTP
+    const emailValid = validateField('email', formData.email)
+    const firstNameValid = validateField('firstName', formData.firstName)
+
+    if (!emailValid || !firstNameValid) {
+      showWarning('Validation Error', 'Please fix the validation errors before sending OTP')
+      return
+    }
+
     if (!formData.email || !formData.firstName) {
       showWarning('Missing Information', 'Please enter your email and first name first')
       return
@@ -175,8 +265,9 @@ function Registration() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (formData.password !== formData.confirmPassword) {
-      showWarning('Password Mismatch', 'Passwords do not match')
+    // Validate all fields before submission
+    if (!validateAllFields()) {
+      showWarning('Validation Error', 'Please fix all validation errors before submitting')
       return
     }
 
@@ -271,8 +362,18 @@ function Registration() {
                     value={formData.firstName}
                     onChange={handleChange}
                     required
-                    className="w-full px-6 py-4 bg-black/60 border border-stone-600/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70"
+                    className={`w-full px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
+                      validationErrors.firstName && touchedFields.firstName
+                        ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                        : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
+                    }`}
                   />
+                  {validationErrors.firstName && touchedFields.firstName && (
+                    <div className="mt-2 flex items-center text-red-400 text-sm">
+                      <FaExclamationTriangle className="mr-2" />
+                      {validationErrors.firstName}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-stone-200 text-sm font-semibold mb-3 tracking-wide">Last Name</label>
@@ -282,8 +383,18 @@ function Registration() {
                     value={formData.secondName}
                     onChange={handleChange}
                     required
-                    className="w-full px-6 py-4 bg-black/60 border border-stone-600/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70"
+                    className={`w-full px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
+                      validationErrors.secondName && touchedFields.secondName
+                        ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                        : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
+                    }`}
                   />
+                  {validationErrors.secondName && touchedFields.secondName && (
+                    <div className="mt-2 flex items-center text-red-400 text-sm">
+                      <FaExclamationTriangle className="mr-2" />
+                      {validationErrors.secondName}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -297,15 +408,19 @@ function Registration() {
                     onChange={handleChange}
                     required
                     disabled={otpData.isOtpVerified}
-                    className={`flex-1 px-6 py-4 bg-black/60 border border-stone-600/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
+                    className={`flex-1 px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
                       otpData.isOtpVerified ? 'opacity-50 cursor-not-allowed' : ''
+                    } ${
+                      validationErrors.email && touchedFields.email
+                        ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                        : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
                     }`}
                   />
                   {!otpData.isOtpVerified && (
                     <button
                       type="button"
                       onClick={sendOTP}
-                      disabled={otpData.isLoading || !formData.email || !formData.firstName}
+                      disabled={otpData.isLoading || !formData.email || !formData.firstName || validationErrors.email || validationErrors.firstName}
                       className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center transition-all duration-300 shadow-lg hover:shadow-blue-500/20"
                     >
                       {otpData.isLoading ? (
@@ -321,6 +436,12 @@ function Registration() {
                     </div>
                   )}
                 </div>
+                {validationErrors.email && touchedFields.email && (
+                  <div className="mt-2 flex items-center text-red-400 text-sm">
+                    <FaExclamationTriangle className="mr-2" />
+                    {validationErrors.email}
+                  </div>
+                )}
               </div>
 
               {/* OTP Verification Section */}
@@ -384,8 +505,18 @@ function Registration() {
                   value={formData.phone}
                   onChange={handleChange}
                   required
-                  className="w-full px-6 py-4 bg-black/60 border border-stone-600/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70"
+                  className={`w-full px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
+                    validationErrors.phone && touchedFields.phone
+                      ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                      : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
+                  }`}
                 />
+                {validationErrors.phone && touchedFields.phone && (
+                  <div className="mt-2 flex items-center text-red-400 text-sm">
+                    <FaExclamationTriangle className="mr-2" />
+                    {validationErrors.phone}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -396,8 +527,18 @@ function Registration() {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full px-6 py-4 bg-black/60 border border-stone-600/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70"
+                  className={`w-full px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
+                    validationErrors.password && touchedFields.password
+                      ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                      : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
+                  }`}
                 />
+                {validationErrors.password && touchedFields.password && (
+                  <div className="mt-2 flex items-center text-red-400 text-sm">
+                    <FaExclamationTriangle className="mr-2" />
+                    {validationErrors.password}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -408,15 +549,25 @@ function Registration() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  className="w-full px-6 py-4 bg-black/60 border border-stone-600/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70"
+                  className={`w-full px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
+                    validationErrors.confirmPassword && touchedFields.confirmPassword
+                      ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                      : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
+                  }`}
                 />
+                {validationErrors.confirmPassword && touchedFields.confirmPassword && (
+                  <div className="mt-2 flex items-center text-red-400 text-sm">
+                    <FaExclamationTriangle className="mr-2" />
+                    {validationErrors.confirmPassword}
+                  </div>
+                )}
               </div>
 
               <button
                 type="submit"
-                disabled={!otpData.isOtpVerified}
+                disabled={!otpData.isOtpVerified || Object.values(validationErrors).some(error => error !== '')}
                 className={`group relative w-full py-4 px-6 rounded-2xl font-bold text-lg tracking-wide transform transition-all duration-500 shadow-[0_12px_40px_rgba(0,0,0,0.3)] overflow-hidden ${
-                  otpData.isOtpVerified
+                  otpData.isOtpVerified && !Object.values(validationErrors).some(error => error !== '')
                     ? 'bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-white hover:scale-105 hover:shadow-[0_16px_50px_rgba(249,115,22,0.5)]'
                     : 'bg-stone-700 text-stone-400 cursor-not-allowed'
                 }`}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { showSuccess, showError, showWarning, showConfirm } from './utils/sweetAlert'
+import { validateName, validatePhone, formatName, formatPhoneNumber } from './utils/validation'
 import {
   FaSignOutAlt,
   FaUsers,
@@ -16,7 +17,9 @@ import {
   FaSearch,
   FaFilter,
   FaTimes,
-  FaSave
+  FaSave,
+  FaFlag,
+  FaExclamationTriangle
 } from 'react-icons/fa'
 
 function Events() {
@@ -39,6 +42,20 @@ function Events() {
     description: ''
   })
   
+  const [validationErrors, setValidationErrors] = useState({
+    name: '',
+    location: '',
+    maxParticipants: '',
+    duration: ''
+  })
+  
+  const [touchedFields, setTouchedFields] = useState({
+    name: false,
+    location: false,
+    maxParticipants: false,
+    duration: false
+  })
+  
   // View/Edit modal state
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [showViewModal, setShowViewModal] = useState(false)
@@ -54,6 +71,31 @@ function Events() {
   const [registrationsError, setRegistrationsError] = useState(null)
   const [showRegistrationsModal, setShowRegistrationsModal] = useState(false)
   const [registrationFilter, setRegistrationFilter] = useState('pending')
+
+  // Race management state
+  const [races, setRaces] = useState([])
+  const [racesLoading, setRacesLoading] = useState(false)
+  const [racesError, setRacesError] = useState(null)
+  const [routes, setRoutes] = useState([])
+  const [routesLoading, setRoutesLoading] = useState(false)
+  const [showRacesModal, setShowRacesModal] = useState(false)
+  const [resultsByRace, setResultsByRace] = useState({})
+  const [draftByRace, setDraftByRace] = useState({}) // { [raceId]: { [userId]: { score, timeStr, position, vehicleId } } }
+  const [showResultsForm, setShowResultsForm] = useState({}) // { [raceId]: boolean }
+  const [showCreateRaceForm, setShowCreateRaceForm] = useState(false)
+  const [showEditRaceModal, setShowEditRaceModal] = useState(false)
+  const [editRaceData, setEditRaceData] = useState(null)
+  const [raceFormData, setRaceFormData] = useState({
+    name: '',
+    type: 'lap',
+    route: '',
+    date: '',
+    startTime: '',
+    estimatedDuration: '',
+    numberOfLaps: '',
+    stages: [],
+    description: ''
+  })
 
   const fetchParticipants = async (eventId) => {
     try {
@@ -198,9 +240,25 @@ function Events() {
     setShowViewModal(false)
     setShowEditModal(false)
     setShowRegistrationsModal(false)
+    setShowRacesModal(false)
+    setShowCreateRaceForm(false)
+    setShowEditRaceModal(false)
     setSelectedEvent(null)
     setEditData(null)
+    setEditRaceData(null)
     setRegistrations([])
+    setRaces([])
+    setRaceFormData({
+      name: '',
+      type: 'lap',
+      route: '',
+      date: '',
+      startTime: '',
+      estimatedDuration: '',
+      numberOfLaps: '',
+      stages: [],
+      description: ''
+    })
   }
 
   const handleEditChange = (e) => {
@@ -265,16 +323,105 @@ function Events() {
     }
   }, [navigate])
 
+  // Auto-fetch results when races are loaded and modal is open
+  useEffect(() => {
+    if (showRacesModal && selectedEvent && races.length > 0) {
+      fetchAllRaceResults(selectedEvent._id, races)
+    }
+  }, [showRacesModal, selectedEvent, races])
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
+    let processedValue = value
+
+    // Format values based on field type
+    if (name === 'name' || name === 'location') {
+      processedValue = formatName(value)
+    }
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: processedValue
     }))
+
+    // Mark field as touched
+    setTouchedFields(prev => ({
+      ...prev,
+      [name]: true
+    }))
+
+    // Validate field
+    validateField(name, processedValue)
+  }
+
+  const validateField = (fieldName, value) => {
+    let validation = { isValid: true, message: '' }
+
+    switch (fieldName) {
+      case 'name':
+        if (!value || value.trim() === '') {
+          validation = { isValid: false, message: 'Event name is required' }
+        } else if (value.trim().length < 3) {
+          validation = { isValid: false, message: 'Event name must be at least 3 characters' }
+        } else if (value.trim().length > 100) {
+          validation = { isValid: false, message: 'Event name is too long (maximum 100 characters)' }
+        }
+        break
+      case 'location':
+        if (!value || value.trim() === '') {
+          validation = { isValid: false, message: 'Location is required' }
+        } else if (value.trim().length < 3) {
+          validation = { isValid: false, message: 'Location must be at least 3 characters' }
+        } else if (value.trim().length > 200) {
+          validation = { isValid: false, message: 'Location is too long (maximum 200 characters)' }
+        }
+        break
+      case 'maxParticipants':
+        if (!value || value.trim() === '') {
+          validation = { isValid: false, message: 'Max participants is required' }
+        } else if (isNaN(value) || parseInt(value) < 1) {
+          validation = { isValid: false, message: 'Max participants must be a positive number' }
+        } else if (parseInt(value) > 10000) {
+          validation = { isValid: false, message: 'Max participants cannot exceed 10,000' }
+        }
+        break
+      case 'duration':
+        if (value && value.trim().length > 50) {
+          validation = { isValid: false, message: 'Duration is too long (maximum 50 characters)' }
+        }
+        break
+      default:
+        break
+    }
+
+    setValidationErrors(prev => ({
+      ...prev,
+      [fieldName]: validation.isValid ? '' : validation.message
+    }))
+
+    return validation.isValid
+  }
+
+  const validateAllFields = () => {
+    const fields = ['name', 'location', 'maxParticipants']
+    let allValid = true
+
+    fields.forEach(field => {
+      const isValid = validateField(field, formData[field])
+      if (!isValid) allValid = false
+    })
+
+    return allValid
   }
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+
+  // Validate all fields before submission
+  if (!validateAllFields()) {
+    showWarning('Validation Error', 'Please fix all validation errors before submitting');
+    return;
+  }
 
   if (!formData.name || !formData.date || !formData.time || !formData.location || !formData.maxParticipants) {
     showWarning('Missing Information', 'Please fill in all required fields');
@@ -364,6 +511,285 @@ const handleSubmit = async (e) => {
   }
 
 
+
+  // Race functions
+  const fetchRaces = async (eventId) => {
+    try {
+      setRacesLoading(true)
+      setRacesError(null)
+      const response = await fetch(`http://localhost:5000/api/races/event/${eventId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch races')
+      setRaces(data.races || [])
+    } catch (err) {
+      console.error(err)
+      setRacesError(err.message || 'Failed to load races')
+    } finally {
+      setRacesLoading(false)
+    }
+  }
+
+  // Fetch results for all races
+  const fetchAllRaceResults = async (eventId, races) => {
+    if (!races || races.length === 0) return
+    
+    try {
+      // Fetch results for each race in parallel
+      const resultPromises = races.map(race => 
+        fetchResultsForRace(eventId, race._id).catch(err => {
+          console.warn(`Failed to fetch results for race ${race.name}:`, err)
+          return null // Don't fail the entire operation if one race fails
+        })
+      )
+      
+      await Promise.all(resultPromises)
+    } catch (err) {
+      console.error('Error fetching race results:', err)
+    }
+  }
+
+  const parseTimeToMs = (timeStr) => {
+    // hh:mm:ss.mmm
+    if (!timeStr) return 0;
+    const match = String(timeStr).trim().match(/^(\d{1,2}):(\d{2}):(\d{2})\.(\d{1,3})$/);
+    if (!match) return 0;
+    const [_, h, m, s, ms] = match;
+    return Number(h) * 3600000 + Number(m) * 60000 + Number(s) * 1000 + Number(ms.padEnd(3, '0'));
+  }
+
+  const formatMsToTime = (ms) => {
+    const sign = ms < 0 ? '-' : '';
+    ms = Math.abs(ms || 0);
+    const hours = Math.floor(ms / 3600000);
+    ms %= 3600000;
+    const minutes = Math.floor(ms / 60000);
+    ms %= 60000;
+    const seconds = Math.floor(ms / 1000);
+    const millis = ms % 1000;
+    const pad2 = (n) => String(n).padStart(2, '0');
+    const pad3 = (n) => String(n).padStart(3, '0');
+    return `${sign}${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}.${pad3(millis)}`;
+  }
+
+  const fetchResultsForRace = async (eventId, raceId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/events/${eventId}/races/${raceId}/results`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to load results')
+      setResultsByRace(prev => ({ ...prev, [raceId]: data.results || [] }))
+    } catch (e) {
+      console.error(e)
+      setResultsByRace(prev => ({ ...prev, [raceId]: [] }))
+    }
+  }
+
+  const saveResult = async ({ eventId, raceId, registration, user, vehicle, score, timeStr, position, notes }) => {
+    const finishingTimeMs = parseTimeToMs(timeStr)
+    const payload = {
+      registrationId: registration._id,
+      userId: user._id || user,
+      vehicleId: vehicle?._id || vehicle || undefined,
+      score: Number(score) || 0,
+      finishingTimeMs,
+      position: position ? Number(position) : undefined,
+      notes: notes || ''
+    }
+    const res = await fetch(`http://localhost:5000/api/events/${eventId}/races/${raceId}/results`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+      body: JSON.stringify(payload)
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Failed to save result')
+    await fetchResultsForRace(eventId, raceId)
+    showSuccess('Saved', 'Result saved successfully')
+  }
+
+  const fetchRoutes = async () => {
+    try {
+      setRoutesLoading(true)
+      const response = await fetch('http://localhost:5000/api/routes', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch routes')
+      // Backend returns an array; fallback to data.routes if shape changes
+      setRoutes(Array.isArray(data) ? data : (data.routes || []))
+    } catch (err) {
+      console.error(err)
+      showError('Error!', 'Failed to load routes.')
+    } finally {
+      setRoutesLoading(false)
+    }
+  }
+
+  const openRaces = (event) => {
+    setSelectedEvent(event)
+    setShowRacesModal(true)
+    fetchRaces(event._id)
+    fetchRoutes()
+    fetchRegistrations(event._id)
+    // Preload results for each race after races load
+  }
+
+  const openEditRace = (race) => {
+    setEditRaceData({
+      ...race,
+      route: race.route._id
+    })
+    setShowEditRaceModal(true)
+  }
+
+  const closeRaceModals = () => {
+    setShowRacesModal(false)
+    setShowCreateRaceForm(false)
+    setShowEditRaceModal(false)
+    setSelectedEvent(null)
+    setEditRaceData(null)
+    setRaces([])
+    setRaceFormData({
+      name: '',
+      type: 'lap',
+      route: '',
+      date: '',
+      startTime: '',
+      estimatedDuration: '',
+      numberOfLaps: '',
+      stages: [],
+      description: ''
+    })
+  }
+
+  const handleRaceInputChange = (e) => {
+    const { name, value } = e.target
+    setRaceFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleEditRaceChange = (e) => {
+    const { name, value } = e.target
+    setEditRaceData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleCreateRace = async (e) => {
+    e.preventDefault()
+
+    if (!raceFormData.name || !raceFormData.route || !raceFormData.date || !raceFormData.startTime) {
+      showWarning('Missing Information', 'Please fill in all required fields')
+      return
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/races/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          ...raceFormData,
+          event: selectedEvent._id
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) throw new Error(result.error || 'Failed to create race')
+
+      showSuccess('Success!', 'Race created successfully!')
+      setRaceFormData({
+        name: '',
+        type: 'lap',
+        route: '',
+        date: '',
+        startTime: '',
+        estimatedDuration: '',
+        numberOfLaps: '',
+        stages: [],
+        description: ''
+      })
+      setShowCreateRaceForm(false)
+      fetchRaces(selectedEvent._id)
+    } catch (err) {
+      console.error(err)
+      showError('Error!', 'Failed to create race. Please try again.')
+    }
+  }
+
+  const handleUpdateRace = async (e) => {
+    e.preventDefault()
+
+    if (!editRaceData.name || !editRaceData.route || !editRaceData.date || !editRaceData.startTime) {
+      showWarning('Missing Information', 'Please fill in all required fields')
+      return
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/races/${editRaceData._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(editRaceData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) throw new Error(result.error || 'Failed to update race')
+
+      showSuccess('Updated!', 'Race updated successfully.')
+      setShowEditRaceModal(false)
+      setEditRaceData(null)
+      fetchRaces(selectedEvent._id)
+    } catch (err) {
+      console.error(err)
+     showError('Error!', err.message || 'Failed to update race.')
+   }
+ }
+
+ const handleDeleteRace = async (raceId, raceName) => {
+   const result = await showConfirm(
+     'Delete Race',
+     `Are you sure you want to delete "${raceName}"? This action cannot be undone.`,
+     'Yes, delete it!',
+     'Cancel'
+   )
+
+   if (result.isConfirmed) {
+     try {
+       const response = await fetch(`http://localhost:5000/api/races/${raceId}`, {
+         method: 'DELETE',
+         headers: {
+           Authorization: `Bearer ${localStorage.getItem('token')}`
+         }
+       })
+
+       if (!response.ok) {
+         const errorData = await response.json()
+         throw new Error(errorData.error || 'Failed to delete race')
+       }
+
+       showSuccess('Deleted!', 'Race has been deleted successfully.')
+       fetchRaces(selectedEvent._id)
+     } catch (error) {
+       showError('Error!', 'Failed to delete race. Please try again.')
+     }
+   }
+ }
 
   const filteredEvents = events.filter(event => {
     const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -479,9 +905,19 @@ const handleSubmit = async (e) => {
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Enter event name"
-                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                      className={`w-full px-4 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                        validationErrors.name && touchedFields.name
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                          : 'border-gray-600 focus:border-green-500 focus:ring-green-500/20'
+                      }`}
                       required
                     />
+                    {validationErrors.name && touchedFields.name && (
+                      <div className="mt-2 flex items-center text-red-400 text-sm">
+                        <FaExclamationTriangle className="mr-2" />
+                        {validationErrors.name}
+                      </div>
+                    )}
                   </div>
 
                   {/* Date and Time */}
@@ -525,9 +961,19 @@ const handleSubmit = async (e) => {
                       value={formData.location}
                       onChange={handleInputChange}
                       placeholder="Enter event location"
-                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                      className={`w-full px-4 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                        validationErrors.location && touchedFields.location
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                          : 'border-gray-600 focus:border-green-500 focus:ring-green-500/20'
+                      }`}
                       required
                     />
+                    {validationErrors.location && touchedFields.location && (
+                      <div className="mt-2 flex items-center text-red-400 text-sm">
+                        <FaExclamationTriangle className="mr-2" />
+                        {validationErrors.location}
+                      </div>
+                    )}
                   </div>
 
                   {/* Max Participants and Difficulty */}
@@ -543,9 +989,19 @@ const handleSubmit = async (e) => {
                         onChange={handleInputChange}
                         placeholder="Enter max participants"
                         min="1"
-                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                        className={`w-full px-4 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                          validationErrors.maxParticipants && touchedFields.maxParticipants
+                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                            : 'border-gray-600 focus:border-green-500 focus:ring-green-500/20'
+                        }`}
                         required
                       />
+                      {validationErrors.maxParticipants && touchedFields.maxParticipants && (
+                        <div className="mt-2 flex items-center text-red-400 text-sm">
+                          <FaExclamationTriangle className="mr-2" />
+                          {validationErrors.maxParticipants}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -575,8 +1031,18 @@ const handleSubmit = async (e) => {
                       value={formData.duration}
                       onChange={handleInputChange}
                       placeholder="e.g., 4 hours, 2 days"
-                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                      className={`w-full px-4 py-2 bg-gray-700 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
+                        validationErrors.duration && touchedFields.duration
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                          : 'border-gray-600 focus:border-green-500 focus:ring-green-500/20'
+                      }`}
                     />
+                    {validationErrors.duration && touchedFields.duration && (
+                      <div className="mt-2 flex items-center text-red-400 text-sm">
+                        <FaExclamationTriangle className="mr-2" />
+                        {validationErrors.duration}
+                      </div>
+                    )}
                   </div>
 
                   {/* Description */}
@@ -605,7 +1071,12 @@ const handleSubmit = async (e) => {
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-500 hover:to-green-600 transition flex items-center space-x-2"
+                      disabled={Object.values(validationErrors).some(error => error !== '')}
+                      className={`px-6 py-2 rounded-lg transition flex items-center space-x-2 ${
+                        !Object.values(validationErrors).some(error => error !== '')
+                          ? 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600'
+                          : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      }`}
                     >
                       <FaSave />
                       <span>Create Event</span>
@@ -1002,7 +1473,48 @@ const handleSubmit = async (e) => {
                                   <p className="text-white">{registration.reviewNotes}</p>
                                 </div>
                               )}
+
+                        {/* Races and Vehicles */}
+                        {(registration.races && registration.races.length > 0) && (
+                          <div className="mt-4">
+                            <p className="text-sm text-gray-400 mb-2">Selected Races</p>
+                            <div className="space-y-2">
+                              {registration.races.map((race) => {
+                                const vehiclesForRace = registration.vehiclesByRace && registration.vehiclesByRace[race._id] ? registration.vehiclesByRace[race._id] : [];
+                                return (
+                                  <div key={race._id} className="bg-gray-800 border border-gray-600 rounded p-3">
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <p className="text-white font-medium">{race.name}</p>
+                                        <p className="text-gray-400 text-sm capitalize">{race.type?.replace('_',' ')} · {race.date} · {race.startTime}</p>
+                                      </div>
+                                    </div>
+                                    <div className="mt-2">
+                                      <p className="text-xs text-gray-400">Vehicles</p>
+                                      {vehiclesForRace && vehiclesForRace.length > 0 ? (
+                                        <ul className="list-disc list-inside text-gray-300 text-sm">
+                                          {vehiclesForRace.map((v) => (
+                                            <li key={v._id || v}>
+                                              {(() => {
+                                                const veh = (registration.vehicles || []).find(x => (x._id || x) === (v._id || v));
+                                                return veh ? `${veh.make} ${veh.model}${veh.year ? ' ('+veh.year+')' : ''}${veh.registrationNumber ? ' • '+veh.registrationNumber : ''}` : String(v);
+                                              })()}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      ) : (
+                                        <p className="text-gray-400 text-sm">—</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
+                          </div>
+                        )}
+                            </div>
+
+                            
 
                             {/* Action Buttons */}
                             {registration.status === 'pending' && (
@@ -1022,6 +1534,8 @@ const handleSubmit = async (e) => {
                               </div>
                             )}
                           </div>
+                          {/* Results Editor for this race */}
+                          
                         </div>
                       ))
                     )}
@@ -1036,6 +1550,686 @@ const handleSubmit = async (e) => {
                       Close
                     </button>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Races Management Modal */}
+          {showRacesModal && selectedEvent && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  {/* Modal Header */}
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white mb-2">Manage Races</h2>
+                      <p className="text-gray-300">{selectedEvent.name}</p>
+                    </div>
+                    <button
+                      onClick={closeRaceModals}
+                      className="text-gray-400 hover:text-white text-xl"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+
+                  {/* Create Race Button */}
+                  <div className="mb-6">
+                    <button
+                      onClick={() => setShowCreateRaceForm(true)}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition flex items-center"
+                    >
+                      <FaPlus className="mr-2" />
+                      Create New Race
+                    </button>
+                  </div>
+
+                  {/* Races List */}
+                  <div className="space-y-4">
+                    {racesLoading ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                      </div>
+                    ) : racesError ? (
+                      <div className="text-center py-8">
+                        <p className="text-red-400">{racesError}</p>
+                      </div>
+                    ) : races.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-400">No races found for this event.</p>
+                      </div>
+                    ) : (
+                      races.map((race) => (
+                        <div key={race._id} className="bg-gray-700 rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-4 mb-3">
+                                <div>
+                                  <h4 className="text-lg font-semibold text-white">{race.name}</h4>
+                                  <p className="text-gray-400 capitalize">{race.type.replace('_', ' ')} Race</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-sm text-gray-400">Date & Time</p>
+                                  <p className="text-white">{race.date} at {race.startTime}</p>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                                <div>
+                                  <p className="text-sm text-gray-400">Route</p>
+                                  <p className="text-white">{race.route.name}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-400">Status</p>
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(race.status)}`}>
+                                    {race.status.charAt(0).toUpperCase() + race.status.slice(1)}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-400">Duration</p>
+                                  <p className="text-white">{race.estimatedDuration}</p>
+                                </div>
+                              </div>
+
+                              {race.type === 'lap' && race.numberOfLaps && (
+                                <div className="mb-3">
+                                  <p className="text-sm text-gray-400">Number of Laps</p>
+                                  <p className="text-white">{race.numberOfLaps}</p>
+                                </div>
+                              )}
+
+                              {race.type === 'rally' && race.stages && race.stages.length > 0 && (
+                                <div className="mb-3">
+                                  <p className="text-sm text-gray-400">Stages</p>
+                                  <p className="text-white">{race.stages.length} stages</p>
+                                </div>
+                              )}
+
+                              {race.description && (
+                                <div className="mb-3">
+                                  <p className="text-sm text-gray-400">Description</p>
+                                  <p className="text-white">{race.description}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex space-x-2 ml-4">
+                              <button
+                                onClick={() => openEditRace(race)}
+                                className="p-2 text-yellow-500 hover:text-yellow-400 hover:bg-gray-600 rounded"
+                                title="Edit Race"
+                              >
+                                <FaEdit />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteRace(race._id, race.name)}
+                                className="p-2 text-red-500 hover:text-red-400 hover:bg-gray-600 rounded"
+                                title="Delete Race"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          </div>
+                          {/* Results Section for this race */}
+                          <div className="mt-4">
+                            <div className="flex items-center justify-between mb-4">
+                              <h5 className="text-white font-semibold">Results</h5>
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => fetchResultsForRace(selectedEvent._id, race._id)}
+                                  className="text-xs px-2 py-1 bg-gray-600 hover:bg-gray-500 rounded"
+                                >Refresh</button>
+                                <button
+                                  onClick={() => setShowResultsForm(prev => ({ ...prev, [race._id]: !prev[race._id] }))}
+                                  className="text-xs px-2 py-1 bg-green-600 hover:bg-green-500 rounded"
+                                >
+                                  {showResultsForm[race._id] ? 'View Results' : 'Add/Edit Results'}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Existing Results Display */}
+                            {!showResultsForm[race._id] && (
+                              <div className="space-y-3">
+                                {(() => {
+                                  const resList = resultsByRace[race._id] || []
+                                  if (resList.length === 0) {
+                                    return (
+                                      <div className="text-center py-4">
+                                        <p className="text-gray-400">No results recorded yet for this race.</p>
+                                      </div>
+                                    )
+                                  }
+                                  
+                                  // Sort results by position
+                                  const sortedResults = [...resList].sort((a, b) => {
+                                    if (a.position && b.position) return a.position - b.position
+                                    if (a.position) return -1
+                                    if (b.position) return 1
+                                    return 0
+                                  })
+
+                                  return sortedResults.map((result, index) => (
+                                    <div key={result._id} className="bg-gray-800 border border-gray-600 rounded p-4">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center space-x-3">
+                                          <span className="text-lg font-bold text-green-400">
+                                            #{result.position || 'N/A'}
+                                          </span>
+                                          <div>
+                                            <p className="text-white font-medium">
+                                              {result.user?.firstName} {result.user?.secondName}
+                                            </p>
+                                            {result.vehicle && (
+                                              <p className="text-sm text-gray-400">
+                                                {result.vehicle.make} {result.vehicle.model}
+                                                {result.vehicle.year && ` (${result.vehicle.year})`}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <p className="text-white font-semibold">
+                                            {result.finishingTimeMs ? formatMsToTime(result.finishingTimeMs) : 'N/A'}
+                                          </p>
+                                          {result.score !== undefined && (
+                                            <p className="text-sm text-gray-400">Score: {result.score}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                      {result.notes && (
+                                        <div className="mt-2">
+                                          <p className="text-sm text-gray-300 italic">"{result.notes}"</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))
+                                })()}
+                              </div>
+                            )}
+
+                            {/* Results Form */}
+                            {showResultsForm[race._id] && (
+                              <div className="space-y-3">
+                                <div className="mb-4 p-3 bg-blue-900/20 border border-blue-700 rounded">
+                                  <p className="text-blue-300 text-sm">
+                                    <strong>Instructions:</strong> Select a participant and enter their race results. 
+                                    You can edit existing results or add new ones.
+                                  </p>
+                                </div>
+                                
+                                {(registrations || [])
+                                  .filter(reg => reg.status === 'approved' && (reg.races || []).some(rr => rr._id === race._id))
+                                  .map((reg) => {
+                                    const resList = resultsByRace[race._id] || []
+                                    const existing = resList.find(x => x.user && (x.user._id === reg.user._id))
+                                    const draft = (draftByRace[race._id] || {})[reg.user._id] || {}
+                                    const currentScore = draft.score ?? (existing?.score ?? '')
+                                    const currentTime = draft.timeStr ?? (existing ? formatMsToTime(existing.finishingTimeMs || 0) : '')
+                                    const currentPos = draft.position ?? (existing?.position ?? '')
+                                    const currentVehId = draft.vehicleId ?? (existing?.vehicle?._id || '')
+                                    
+                                    return (
+                                      <div key={reg._id} className="bg-gray-800 border border-gray-600 rounded p-3">
+                                        <div className="flex items-center justify-between mb-3">
+                                          <div>
+                                            <p className="text-gray-200 font-medium">{reg.user.firstName} {reg.user.secondName}</p>
+                                            {existing && (
+                                              <p className="text-xs text-green-400">Existing result - Position #{existing.position}</p>
+                                            )}
+                                          </div>
+                                          <div className="flex space-x-2">
+                                            <button
+                                              onClick={() => fetchResultsForRace(selectedEvent._id, race._id)}
+                                              className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded"
+                                            >Load</button>
+                                            {existing && (
+                                              <button
+                                                onClick={() => {
+                                                  // Clear draft to show existing values
+                                                  setDraftByRace(prev => ({
+                                                    ...prev,
+                                                    [race._id]: { ...(prev[race._id] || {}), [reg.user._id]: undefined }
+                                                  }))
+                                                }}
+                                                className="text-xs px-2 py-1 bg-yellow-600 hover:bg-yellow-500 rounded"
+                                              >Reset</button>
+                                            )}
+                                          </div>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                                          <div>
+                                            <label className="block text-xs text-gray-400 mb-1">Position *</label>
+                                            <input 
+                                              type="number" 
+                                              value={currentPos} 
+                                              placeholder="1, 2, 3..."
+                                              className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white focus:border-green-500" 
+                                              onChange={(e) => {
+                                                setDraftByRace(prev => ({
+                                                  ...prev,
+                                                  [race._id]: {
+                                                    ...(prev[race._id] || {}),
+                                                    [reg.user._id]: { ...(prev[race._id]?.[reg.user._id] || {}), position: e.target.value }
+                                                  }
+                                                }))
+                                              }} 
+                                            />
+                                          </div>
+                                          
+                                          <div>
+                                            <label className="block text-xs text-gray-400 mb-1">Time (hh:mm:ss.mmm)</label>
+                                            <input 
+                                              type="text" 
+                                              value={currentTime} 
+                                              placeholder="00:00:00.000" 
+                                              className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white focus:border-green-500" 
+                                              onChange={(e) => {
+                                                setDraftByRace(prev => ({
+                                                  ...prev,
+                                                  [race._id]: {
+                                                    ...(prev[race._id] || {}),
+                                                    [reg.user._id]: { ...(prev[race._id]?.[reg.user._id] || {}), timeStr: e.target.value }
+                                                  }
+                                                }))
+                                              }} 
+                                            />
+                                          </div>
+                                          
+                                          <div>
+                                            <label className="block text-xs text-gray-400 mb-1">Score</label>
+                                            <input 
+                                              type="number" 
+                                              value={currentScore} 
+                                              placeholder="Points"
+                                              className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white focus:border-green-500" 
+                                              onChange={(e) => {
+                                                setDraftByRace(prev => ({
+                                                  ...prev,
+                                                  [race._id]: {
+                                                    ...(prev[race._id] || {}),
+                                                    [reg.user._id]: { ...(prev[race._id]?.[reg.user._id] || {}), score: e.target.value }
+                                                  }
+                                                }))
+                                              }} 
+                                            />
+                                          </div>
+                                          
+                                          <div>
+                                            <label className="block text-xs text-gray-400 mb-1">Vehicle</label>
+                                            <select 
+                                              value={currentVehId} 
+                                              className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white focus:border-green-500" 
+                                              onChange={(e) => {
+                                                setDraftByRace(prev => ({
+                                                  ...prev,
+                                                  [race._id]: {
+                                                    ...(prev[race._id] || {}),
+                                                    [reg.user._id]: { ...(prev[race._id]?.[reg.user._id] || {}), vehicleId: e.target.value }
+                                                  }
+                                                }))
+                                              }}
+                                            >
+                                              <option value="">Select vehicle</option>
+                                              {(reg.vehicles || []).map(v => (
+                                                <option key={v._id} value={v._id}>
+                                                  {v.make} {v.model}{v.year ? ` (${v.year})` : ''}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </div>
+                                        </div>
+                                        
+                                        <div className="mt-3 flex justify-end space-x-2">
+                                          <button
+                                            onClick={() => {
+                                              // Clear draft for this user
+                                              setDraftByRace(prev => ({
+                                                ...prev,
+                                                [race._id]: { ...(prev[race._id] || {}), [reg.user._id]: undefined }
+                                              }))
+                                            }}
+                                            className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded text-sm"
+                                          >Cancel</button>
+                                          <button
+                                            onClick={async () => {
+                                              try {
+                                                await saveResult({
+                                                  eventId: selectedEvent._id,
+                                                  raceId: race._id,
+                                                  registration: reg,
+                                                  user: reg.user,
+                                                  vehicle: currentVehId,
+                                                  score: currentScore,
+                                                  timeStr: currentTime,
+                                                  position: currentPos,
+                                                  notes: ''
+                                                })
+                                                // Clear draft for this racer
+                                                setDraftByRace(prev => ({
+                                                  ...prev,
+                                                  [race._id]: { ...(prev[race._id] || {}), [reg.user._id]: undefined }
+                                                }))
+                                              } catch (e) { 
+                                                showError('Error', e.message) 
+                                              }
+                                            }}
+                                            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm"
+                                          >
+                                            {existing ? 'Update Result' : 'Save Result'}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={closeRaceModals}
+                      className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Create Race Modal */}
+          {showCreateRaceForm && selectedEvent && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-2xl font-bold text-white">Create New Race</h2>
+                    <button
+                      onClick={() => setShowCreateRaceForm(false)}
+                      className="text-gray-400 hover:text-white text-xl"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCreateRace}>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Race Name *</label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={raceFormData.name}
+                          onChange={handleRaceInputChange}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Race Type *</label>
+                        <select
+                          name="type"
+                          value={raceFormData.type}
+                          onChange={handleRaceInputChange}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                          required
+                        >
+                          <option value="lap">Lap Racing</option>
+                          <option value="rally">Rally/Endurance</option>
+                          <option value="time_trial">Time Trial</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Route *</label>
+                        <select
+                          name="route"
+                          value={raceFormData.route}
+                          onChange={handleRaceInputChange}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                          required
+                        >
+                          <option value="">Select a route</option>
+                          {routes.map((route) => (
+                            <option key={route._id} value={route._id}>{route.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Date *</label>
+                          <input
+                            type="date"
+                            name="date"
+                            value={raceFormData.date}
+                            onChange={handleRaceInputChange}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Start Time *</label>
+                          <input
+                            type="time"
+                            name="startTime"
+                            value={raceFormData.startTime}
+                            onChange={handleRaceInputChange}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Estimated Duration</label>
+                        <input
+                          type="text"
+                          name="estimatedDuration"
+                          value={raceFormData.estimatedDuration}
+                          onChange={handleRaceInputChange}
+                          placeholder="e.g., 2 hours"
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                        />
+                      </div>
+
+                      {raceFormData.type === 'lap' && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Number of Laps</label>
+                          <input
+                            type="number"
+                            name="numberOfLaps"
+                            value={raceFormData.numberOfLaps}
+                            onChange={handleRaceInputChange}
+                            min="1"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                          />
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                        <textarea
+                          name="description"
+                          value={raceFormData.description}
+                          onChange={handleRaceInputChange}
+                          rows="3"
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end space-x-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowCreateRaceForm(false)}
+                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
+                      >
+                        Create Race
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Race Modal */}
+          {showEditRaceModal && editRaceData && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-2xl font-bold text-white">Edit Race</h2>
+                    <button
+                      onClick={() => setShowEditRaceModal(false)}
+                      className="text-gray-400 hover:text-white text-xl"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleUpdateRace}>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Race Name *</label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={editRaceData.name}
+                          onChange={handleEditRaceChange}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Race Type *</label>
+                        <select
+                          name="type"
+                          value={editRaceData.type}
+                          onChange={handleEditRaceChange}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                          required
+                        >
+                          <option value="lap">Lap Racing</option>
+                          <option value="rally">Rally/Endurance</option>
+                          <option value="time_trial">Time Trial</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Route *</label>
+                        <select
+                          name="route"
+                          value={editRaceData.route}
+                          onChange={handleEditRaceChange}
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                          required
+                        >
+                          <option value="">Select a route</option>
+                          {routes.map((route) => (
+                            <option key={route._id} value={route._id}>{route.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Date *</label>
+                          <input
+                            type="date"
+                            name="date"
+                            value={editRaceData.date}
+                            onChange={handleEditRaceChange}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Start Time *</label>
+                          <input
+                            type="time"
+                            name="startTime"
+                            value={editRaceData.startTime}
+                            onChange={handleEditRaceChange}
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Estimated Duration</label>
+                        <input
+                          type="text"
+                          name="estimatedDuration"
+                          value={editRaceData.estimatedDuration}
+                          onChange={handleEditRaceChange}
+                          placeholder="e.g., 2 hours"
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                        />
+                      </div>
+
+                      {editRaceData.type === 'lap' && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Number of Laps</label>
+                          <input
+                            type="number"
+                            name="numberOfLaps"
+                            value={editRaceData.numberOfLaps}
+                            onChange={handleEditRaceChange}
+                            min="1"
+                            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                          />
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                        <textarea
+                          name="description"
+                          value={editRaceData.description}
+                          onChange={handleEditRaceChange}
+                          rows="3"
+                          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-green-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end space-x-4">
+                      <button
+                        type="button"
+                        onClick={() => setShowEditRaceModal(false)}
+                        className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
+                      >
+                        Update Race
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>
@@ -1094,6 +2288,13 @@ const handleSubmit = async (e) => {
                         title="Manage Registrations"
                       >
                         <FaUsers />
+                      </button>
+                      <button
+                        onClick={() => openRaces(event)}
+                        className="p-2 text-purple-500 hover:text-purple-400 hover:bg-gray-700 rounded"
+                        title="Manage Races"
+                      >
+                        <FaFlag />
                       </button>
                       <button
                         onClick={() => openEdit(event)}
