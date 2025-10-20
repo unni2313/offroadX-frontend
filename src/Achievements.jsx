@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import API_BASE_URL from './config/api'
 import {
   FaMapMarkedAlt,
   FaUser,
@@ -397,7 +398,7 @@ function Achievements(){
   const fetchProfileData = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -416,7 +417,7 @@ function Achievements(){
   const fetchEvents = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/events', {
+      const response = await fetch(`${API_BASE_URL}/api/events`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -433,7 +434,7 @@ function Achievements(){
   const fetchAllResults = async () => {
     try{
       setLoading(true); setError('')
-      const res = await fetch('http://localhost:5000/api/events/results', {
+      const res = await fetch(`${API_BASE_URL}/api/events/results`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       })
       if (!res.ok){ setResults([]); return }
@@ -473,7 +474,7 @@ function Achievements(){
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) return
-    const es = new EventSource(`http://localhost:5000/api/events/results/stream?token=${encodeURIComponent(token)}`)
+    const es = new EventSource(`${API_BASE_URL}/api/events/results/stream?token=${encodeURIComponent(token)}`)
     es.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data)

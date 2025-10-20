@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { showSuccess, showError, showWarning, showConfirm } from './utils/sweetAlert';
 import { validateName, validatePhone, formatName, formatPhoneNumber } from './utils/validation';
+import API_BASE_URL from './config/api';
 import { 
   FaMapMarkedAlt, 
   FaUser, 
@@ -93,7 +94,7 @@ function UserEvents() {
   const fetchProfileData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -114,7 +115,7 @@ function UserEvents() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('http://localhost:5000/api/events');
+      const response = await fetch(`${API_BASE_URL}/api/events`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch events');
@@ -135,7 +136,7 @@ function UserEvents() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/events/user/participations', {
+      const response = await fetch(`${API_BASE_URL}/api/events/user/participations`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -158,7 +159,7 @@ function UserEvents() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/events/user/registrations', {
+      const response = await fetch(`${API_BASE_URL}/api/events/user/registrations`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -178,7 +179,7 @@ function UserEvents() {
       setVehiclesLoading(true);
       const token = localStorage.getItem('token');
       if (!token) return;
-      const res = await fetch('http://localhost:5000/api/vehicles', {
+      const res = await fetch(`${API_BASE_URL}/api/vehicles`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -224,7 +225,7 @@ function UserEvents() {
       setRacesLoading(true);
       if (!fetchedRaces) {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:5000/api/races/event/${eventId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/races/event/${eventId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
         if (res.ok) {
@@ -294,7 +295,7 @@ function UserEvents() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/events/${selectedEvent._id}/register`, {
+      const response = await fetch(`${API_BASE_URL}/api/events/${selectedEvent._id}/register`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -353,7 +354,7 @@ function UserEvents() {
     if (result.isConfirmed) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5000/api/events/${eventId}/cancel-registration`, {
+        const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/cancel-registration`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -386,7 +387,7 @@ function UserEvents() {
       setRacesLoading(true);
       if (!racesByEvent[event._id]) {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:5000/api/races/event/${event._id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/races/event/${event._id}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
         if (res.ok) {
@@ -1243,6 +1244,56 @@ function UserEvents() {
                   <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
                     <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500 mb-4">Adventure Description</h3>
                     <p className="text-stone-200 leading-relaxed text-lg">{selectedEvent.description}</p>
+                  </div>
+                )}
+
+                {/* Event Guidelines */}
+                {selectedEvent.guidelines && (
+                  <div className="bg-black/20 backdrop-blur-sm rounded-xl p-6 border border-orange-500/20">
+                    <div className="flex items-center space-x-3 mb-6">
+                      <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <FaInfoCircle className="text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-500">Event Guidelines</h3>
+                    </div>
+                    
+                    {/* Guidelines Text */}
+                    {selectedEvent.guidelines.text && (
+                      <div className="mb-6 p-4 bg-black/30 border border-orange-500/10 rounded-lg">
+                        <p className="text-stone-200 leading-relaxed">{selectedEvent.guidelines.text}</p>
+                      </div>
+                    )}
+                    
+                    {/* Checklist Items */}
+                    {selectedEvent.guidelines.checklistItems && selectedEvent.guidelines.checklistItems.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold text-orange-400 mb-4 uppercase tracking-wide">Required Items & Checklist</h4>
+                        <div className="space-y-3">
+                          {selectedEvent.guidelines.checklistItems.map((item, idx) => (
+                            <div 
+                              key={idx} 
+                              className={`flex items-center space-x-3 p-3 rounded-lg border ${
+                                item.required 
+                                  ? 'bg-red-500/5 border-red-500/20' 
+                                  : 'bg-orange-500/5 border-orange-500/10'
+                              }`}
+                            >
+                              <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 ${
+                                item.required 
+                                  ? 'bg-red-500/20 text-red-400' 
+                                  : 'bg-orange-500/20 text-orange-400'
+                              }`}>
+                                {item.required ? '✓' : '•'}
+                              </div>
+                              <span className={`text-sm ${item.required ? 'text-red-300 font-semibold' : 'text-stone-200'}`}>
+                                {item.item}
+                                {item.required && <span className="text-red-400 ml-1">(Required)</span>}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

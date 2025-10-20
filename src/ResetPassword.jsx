@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FaMapMarkedAlt, FaLock, FaEye, FaEyeSlash, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import API_BASE_URL from './config/api';
 
 function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -34,7 +35,7 @@ function ResetPassword() {
 
   const verifyToken = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/password/verify-reset-token/${token}`);
+      const response = await axios.get(`${API_BASE_URL}/api/password/verify-reset-token/${token}`);
       setTokenValid(true);
       setUserInfo(response.data);
     } catch (error) {
@@ -69,7 +70,7 @@ function ResetPassword() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/password/reset-password', {
+      const response = await axios.post(`${API_BASE_URL}/api/password/reset-password`, {
         token,
         newPassword: formData.newPassword,
         confirmPassword: formData.confirmPassword,

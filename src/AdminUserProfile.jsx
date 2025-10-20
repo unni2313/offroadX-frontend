@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import API_BASE_URL from './config/api';
 
 export default function AdminUserProfile() {
   const { id } = useParams();
@@ -18,8 +19,8 @@ export default function AdminUserProfile() {
       try {
         const token = localStorage.getItem('token');
         const [uRes, vRes] = await Promise.all([
-          fetch(`http://localhost:5000/api/admin/users/${id}?stats=true`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`http://localhost:5000/api/admin/users/${id}/vehicles`, { headers: { Authorization: `Bearer ${token}` } })
+          fetch(`${API_BASE_URL}/api/admin/users/${id}?stats=true`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/api/admin/users/${id}/vehicles`, { headers: { Authorization: `Bearer ${token}` } })
         ]);
         const uData = await uRes.json();
         if (!uRes.ok) throw new Error(uData?.error || 'Failed to load user');
@@ -46,7 +47,7 @@ export default function AdminUserProfile() {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/admin/users/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(editForm)
@@ -191,7 +192,7 @@ export default function AdminUserProfile() {
                         onClick={async () => {
                           try {
                             const token = localStorage.getItem('token');
-                            const res = await fetch(`http://localhost:5000/api/admin/users/${id}/license/url`, { headers: { Authorization: `Bearer ${token}` } });
+                            const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}/license/url`, { headers: { Authorization: `Bearer ${token}` } });
                             const data = await res.json();
                             if (!res.ok || !data?.url) throw new Error(data?.error || 'Failed to get URL');
                             window.open(data.url, '_blank');

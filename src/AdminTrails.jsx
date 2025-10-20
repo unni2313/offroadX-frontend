@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import API_BASE_URL from './config/api';
 import { 
   FaPlus, 
   FaEdit, 
@@ -73,7 +74,7 @@ const AdminTrails = () => {
         return;
       }
       
-      const response = await fetch('http://localhost:5000/api/routes', {
+      const response = await fetch(`${API_BASE_URL}/api/routes`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -138,8 +139,8 @@ const AdminTrails = () => {
     try {
       const token = localStorage.getItem('token');
       const url = editingRoute 
-        ? `http://localhost:5000/api/routes/${editingRoute._id}`
-        : 'http://localhost:5000/api/routes';
+        ? `${API_BASE_URL}/api/routes/${editingRoute._id}`
+        : `${API_BASE_URL}/api/routes`;
       
       const method = editingRoute ? 'PUT' : 'POST';
       
@@ -198,7 +199,7 @@ const AdminTrails = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/routes/${routeId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/routes/${routeId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -222,7 +223,7 @@ const AdminTrails = () => {
   const handleToggleActive = async (routeId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/routes/${routeId}/toggle`, {
+      const response = await fetch(`${API_BASE_URL}/api/routes/${routeId}/toggle`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`

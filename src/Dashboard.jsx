@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, NavLink, Outlet } from 'react-router-dom'
 import { FaSignOutAlt, FaUsers, FaCalendarAlt, FaChartLine, FaMapMarkedAlt, FaCog, FaBars, FaUser, FaRoute, FaTrophy, FaArrowUp, FaClock, FaCheckCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import axios from 'axios'
+import API_BASE_URL from './config/api'
 
 // Default dashboard overview content shown at /dashboard
 export function DashboardOverview() {
@@ -23,18 +24,18 @@ export function DashboardOverview() {
       const config = { headers: { Authorization: `Bearer ${token}` } }
 
       // Fetch ALL events for calendar display (not just upcoming)
-      const eventsRes = await axios.get('http://localhost:5000/api/events', config)
+      const eventsRes = await axios.get(`${API_BASE_URL}/api/events`, config)
       const allEventsData = eventsRes.data.events || []
       
       // Pass all events to calendar - let calendar handle month filtering
       setEvents(allEventsData)
 
       // Fetch upcoming events for stats calculation
-      const upcomingEventsRes = await axios.get('http://localhost:5000/api/events/upcoming', config).catch(() => null)
+      const upcomingEventsRes = await axios.get(`${API_BASE_URL}/api/events/upcoming`, config).catch(() => null)
       const upcomingEventsData = upcomingEventsRes?.data || []
       
       // Fetch dashboard stats from admin endpoint
-      const statsRes = await axios.get('http://localhost:5000/api/admin/stats', config).catch(() => null)
+      const statsRes = await axios.get(`${API_BASE_URL}/api/admin/stats`, config).catch(() => null)
       
       if (statsRes?.data) {
         setStats(statsRes.data)
@@ -67,7 +68,7 @@ export function DashboardOverview() {
 
       // Fetch system status from health endpoint
       try {
-        const healthRes = await axios.get('http://localhost:5000/health', config).catch(() => null)
+        const healthRes = await axios.get(`${API_BASE_URL}/health`, config).catch(() => null)
         if (healthRes?.data) {
           setSystemStatus({
             api: healthRes.data.status === 'ok' ? 'operational' : 'error',
@@ -612,7 +613,7 @@ function Dashboard() {
     { to: '/dashboard/participants', icon: <FaUsers />, label: 'Participants' },
     { to: '/dashboard/routes', icon: <FaRoute />, label: 'Trail Routes' },
     { to: '/settings', icon: <FaCog />, label: 'Settings' },
-    { to: '/profile', icon: <FaUser />, label: 'Profile' }
+    { to: '/dashboard/profile', icon: <FaUser />, label: 'Profile' }
   ]
 
   return (

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaCar, FaPlus, FaTrash, FaEdit, FaSave, FaTimes, FaImage } from 'react-icons/fa';
+import API_BASE_URL from './config/api';
 
 const initialForm = {
   type: '',
@@ -43,7 +44,7 @@ export default function VehiclesSection() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/vehicles', {
+      const res = await fetch(`${API_BASE_URL}/api/vehicles`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!res.ok) throw new Error('Failed to load vehicles');
@@ -81,7 +82,7 @@ export default function VehiclesSection() {
       setPhotoUploading(true);
       const fd = new FormData();
       fd.append('photo', file);
-      const res = await fetch(`http://localhost:5000/api/vehicles/${vehicleId}/photo`, {
+      const res = await fetch(`${API_BASE_URL}/api/vehicles/${vehicleId}/photo`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: fd
@@ -101,7 +102,7 @@ export default function VehiclesSection() {
   const removeVehiclePhoto = async (vehicleId) => {
     try {
       setPhotoUploading(true);
-      const res = await fetch(`http://localhost:5000/api/vehicles/${vehicleId}/photo`, {
+      const res = await fetch(`${API_BASE_URL}/api/vehicles/${vehicleId}/photo`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -122,7 +123,7 @@ export default function VehiclesSection() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:5000/api/vehicles', {
+      const res = await fetch(`${API_BASE_URL}/api/vehicles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form)
@@ -173,7 +174,7 @@ export default function VehiclesSection() {
   const saveEdit = async () => {
     try {
       // Save fields first
-      const res = await fetch(`http://localhost:5000/api/vehicles/${editingId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/vehicles/${editingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(editForm)
@@ -201,7 +202,7 @@ export default function VehiclesSection() {
   const deleteVehicle = async (id) => {
     if (!window.confirm('Delete this vehicle?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/vehicles/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/vehicles/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

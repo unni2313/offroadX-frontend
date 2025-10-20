@@ -17,6 +17,7 @@ import Profile from './Profile.jsx'
 import Participants from './Participants.jsx'
 import AdminUserProfile from './AdminUserProfile.jsx'
 import AdminTrails from './AdminTrails.jsx'
+import AdminProfile from './AdminProfile.jsx'
 import UserRoutes from './UserRoutes.jsx'
 import Troutes from './Troutes.jsx'
 import Achievements from './Achievements.jsx'
@@ -49,6 +50,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="participants" element={<Participants />} />
           <Route path="routes" element={<AdminTrails />} />
           <Route path="users/:id" element={<AdminUserProfile />} />
+          <Route path="profile" element={<AdminProfile />} />
         </Route>
 
         <Route path="/events" element={
