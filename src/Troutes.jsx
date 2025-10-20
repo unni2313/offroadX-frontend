@@ -292,9 +292,9 @@ const Routes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-900 via-neutral-900 to-stone-800 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
       {/* Navigation Header */}
-      <nav className="relative z-50 bg-gradient-to-r from-stone-900/95 to-neutral-900/90 border-b border-stone-700/50 sticky top-0 backdrop-blur-xl">
+      <nav className="relative z-50 bg-gradient-to-r from-gray-900/95 to-gray-800/90 border-b border-gray-700/50 sticky top-0 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
@@ -310,7 +310,7 @@ const Routes = () => {
 
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center space-x-10">
-              <Link to="/events" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
+              <Link to="/events" className="text-gray-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
                 <FaCalendarAlt className="text-lg" />
                 <span>Events</span>
               </Link>
@@ -318,7 +318,7 @@ const Routes = () => {
                 <FaRoute className="text-lg" />
                 <span>Routes</span>
               </Link>
-              <Link to="/achievements" className="text-stone-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
+              <Link to="/achievements" className="text-gray-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
                 <FaTrophy className="text-lg" />
                 <span>Achievements</span>
               </Link>
@@ -326,7 +326,7 @@ const Routes = () => {
 
             {/* Desktop User Menu */}
             <div className="hidden md:flex items-center space-x-6">
-              <button className="text-stone-300 hover:text-orange-400 transition-all duration-300 relative">
+              <button className="text-gray-300 hover:text-orange-400 transition-all duration-300 relative">
                 <FaBell className="text-2xl" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
               </button>
@@ -345,12 +345,12 @@ const Routes = () => {
                   )}
                   <div>
                     <p className="text-lg font-bold text-white tracking-wide">{user.firstName} {user.secondName}</p>
-                    <p className="text-sm text-stone-400">Click to view profile</p>
+                    <p className="text-sm text-gray-400">Click to view profile</p>
                   </div>
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="text-stone-300 hover:text-red-400 transition-all duration-300 p-2 rounded-xl hover:bg-red-500/10"
+                  className="text-gray-300 hover:text-red-400 transition-all duration-300 p-2 rounded-xl hover:bg-red-500/10"
                   title="Logout"
                 >
                   <FaSignOutAlt className="text-xl" />
@@ -360,7 +360,7 @@ const Routes = () => {
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-4">
-              <button className="text-stone-300 hover:text-orange-400 transition-all duration-300 relative">
+              <button className="text-gray-300 hover:text-orange-400 transition-all duration-300 relative">
                 <FaBell className="text-xl" />
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
               </button>
@@ -436,35 +436,35 @@ const Routes = () => {
       </nav>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-stone-900/95 to-neutral-900/90 border-b border-stone-700/50 backdrop-blur-xl z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center mb-6">
-            <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 mb-2">
+      <div className="bg-gradient-to-r from-gray-900/95 to-gray-800/90 border-b border-gray-700/50 backdrop-blur-xl z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 mb-4 drop-shadow-2xl">
               Discover Trail Routes
             </h1>
-            <p className="text-gray-400 text-lg">Explore amazing offroad adventures and find your next challenge</p>
+            <p className="text-gray-300 text-xl max-w-2xl mx-auto leading-relaxed">Explore amazing offroad adventures and find your next challenge</p>
           </div>
 
           {/* Search and Filters */}
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <div className="relative flex-1 max-w-lg">
+              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-400" />
               <input
                 type="text"
-                placeholder="Search routes..."
+                placeholder="Search routes by name, location, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-stone-800/50 border border-stone-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                className="w-full bg-gray-800/60 border border-gray-600 rounded-2xl pl-12 pr-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 backdrop-blur-sm transition-all duration-300"
               />
             </div>
 
             {/* Filters */}
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <select
                 value={difficultyFilter}
                 onChange={(e) => setDifficultyFilter(e.target.value)}
-                className="bg-stone-800/50 border border-stone-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
+                className="bg-gray-800/60 border border-gray-600 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 backdrop-blur-sm transition-all duration-300"
               >
                 <option value="">All Difficulties</option>
                 <option value="Beginner">Beginner</option>
@@ -476,7 +476,7 @@ const Routes = () => {
               <select
                 value={terrainFilter}
                 onChange={(e) => setTerrainFilter(e.target.value)}
-                className="bg-stone-800/50 border border-stone-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
+                className="bg-gray-800/60 border border-gray-600 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 backdrop-blur-sm transition-all duration-300"
               >
                 <option value="">All Terrains</option>
                 <option value="Rocky">Rocky</option>
@@ -491,9 +491,9 @@ const Routes = () => {
               {(searchTerm || difficultyFilter || terrainFilter) && (
                 <button
                   onClick={clearFilters}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg transition-colors"
+                  className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white px-6 py-4 rounded-2xl transition-all duration-300 font-semibold shadow-lg"
                 >
-                  Clear
+                  Clear Filters
                 </button>
               )}
             </div>
@@ -502,67 +502,82 @@ const Routes = () => {
       </div>
 
       {/* Routes Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {filteredRoutes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredRoutes.map((route) => (
-              <div key={route._id} className="bg-gradient-to-br from-stone-800/80 to-neutral-800/80 rounded-2xl p-6 border border-stone-700/50 hover:border-orange-500/50 transition-all duration-300 shadow-2xl backdrop-blur-sm">
+              <div key={route._id} className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 rounded-3xl p-8 border border-gray-700/50 hover:border-orange-500/50 transition-all duration-500 shadow-2xl backdrop-blur-sm hover:scale-105 hover:shadow-[0_25px_50px_rgba(249,115,22,0.15)] group">
                 {/* Route Header */}
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-6">
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white mb-2">{route.name}</h3>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${difficultyColors[route.difficulty]}`}>
+                    <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300 mb-3 group-hover:from-orange-200 group-hover:to-white transition-all duration-500">{route.name}</h3>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-4 py-2 rounded-full text-sm font-bold text-white bg-gradient-to-r ${
+                        route.difficulty === 'Beginner' ? 'from-green-500 to-green-600' :
+                        route.difficulty === 'Intermediate' ? 'from-yellow-500 to-yellow-600' :
+                        route.difficulty === 'Advanced' ? 'from-orange-500 to-orange-600' :
+                        'from-red-500 to-red-600'
+                      } shadow-lg`}>
                         {route.difficulty}
                       </span>
-                      <span className="text-gray-400 text-sm">
+                      <span className="text-gray-300 text-base font-medium">
                         {terrainIcons[route.terrain]} {route.terrain}
                       </span>
                     </div>
                   </div>
                   <button
                     onClick={() => toggleBookmark(route._id)}
-                    className="text-orange-500 hover:text-orange-400 transition-colors p-2"
+                    className="text-orange-500 hover:text-orange-400 transition-all duration-300 p-3 rounded-2xl hover:bg-orange-500/10 group-hover:scale-110"
                     title={bookmarkedRoutes.includes(route._id) ? 'Remove bookmark' : 'Add bookmark'}
                   >
-                    {bookmarkedRoutes.includes(route._id) ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
+                    {bookmarkedRoutes.includes(route._id) ? <FaBookmark size={24} /> : <FaRegBookmark size={24} />}
                   </button>
                 </div>
 
                 {/* Route Info */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <FaRoad className="text-orange-500" />
-                    <span className="text-sm">{route.distance} km</span>
+                <div className="space-y-4 mb-6">
+                  <div className="flex items-center gap-3 text-gray-200">
+                    <div className="p-2 bg-orange-500/20 rounded-xl">
+                      <FaRoad className="text-orange-400 text-lg" />
+                    </div>
+                    <span className="text-base font-medium">{route.distance} km</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <FaClock className="text-orange-500" />
-                    <span className="text-sm">{route.estimatedTime}</span>
+                  <div className="flex items-center gap-3 text-gray-200">
+                    <div className="p-2 bg-orange-500/20 rounded-xl">
+                      <FaClock className="text-orange-400 text-lg" />
+                    </div>
+                    <span className="text-base font-medium">{route.estimatedTime}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <FaUsers className="text-orange-500" />
-                    <span className="text-sm">Max {route.maxParticipants} participants</span>
+                  <div className="flex items-center gap-3 text-gray-200">
+                    <div className="p-2 bg-orange-500/20 rounded-xl">
+                      <FaUsers className="text-orange-400 text-lg" />
+                    </div>
+                    <span className="text-base font-medium">Max {route.maxParticipants} participants</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <FaMapMarkedAlt className="text-orange-500" />
-                    <span className="text-sm">{route.startLocation} → {route.endLocation}</span>
+                  <div className="flex items-center gap-3 text-gray-200">
+                    <div className="p-2 bg-orange-500/20 rounded-xl">
+                      <FaMapMarkedAlt className="text-orange-400 text-lg" />
+                    </div>
+                    <span className="text-base font-medium">{route.startLocation} → {route.endLocation}</span>
                   </div>
                 </div>
 
                 {/* Description */}
-                <p className="text-gray-400 text-sm mb-4 line-clamp-3">{route.description}</p>
+                <p className="text-gray-300 text-base mb-6 line-clamp-3 leading-relaxed">{route.description}</p>
 
                 {/* Safety Notes */}
                 {route.safetyNotes && (
-                  <div className="flex items-start gap-2 mb-4 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                    <FaExclamationTriangle className="text-yellow-500 mt-0.5 flex-shrink-0" size={14} />
-                    <p className="text-yellow-200 text-xs">{route.safetyNotes}</p>
+                  <div className="flex items-start gap-3 mb-6 p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-2xl border border-yellow-500/30">
+                    <div className="p-1 bg-yellow-500/20 rounded-lg">
+                      <FaExclamationTriangle className="text-yellow-400 flex-shrink-0" size={16} />
+                    </div>
+                    <p className="text-yellow-200 text-sm leading-relaxed">{route.safetyNotes}</p>
                   </div>
                 )}
 
                 {/* Vehicle Type */}
-                <div className="mb-4">
-                  <span className="inline-block bg-stone-700/50 text-gray-300 px-3 py-1 rounded-full text-xs">
+                <div className="mb-6">
+                  <span className="inline-block bg-gradient-to-r from-gray-700/80 to-gray-600/80 text-gray-200 px-4 py-2 rounded-full text-sm font-medium shadow-lg">
                     {route.requiredVehicleType}
                   </span>
                 </div>
@@ -570,28 +585,31 @@ const Routes = () => {
                 {/* Action Button */}
                 <button
                   onClick={() => setViewingRoute(route)}
-                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-amber-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl hover:shadow-orange-500/25 group-hover:scale-105"
                 >
-                  <FaEye size={16} /> View Details
+                  <FaEye size={18} /> View Details & Map
                 </button>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <FaMapMarkedAlt className="text-6xl text-gray-600 mx-auto mb-6" />
-            <h3 className="text-2xl font-semibold text-gray-400 mb-4">No routes found</h3>
-            <p className="text-gray-500 mb-6">
+          <div className="text-center py-20">
+            <div className="relative mb-8">
+              <FaMapMarkedAlt className="text-8xl text-gray-600 mx-auto mb-6 opacity-50" />
+              <div className="absolute inset-0 bg-orange-500/10 rounded-full blur-3xl opacity-30"></div>
+            </div>
+            <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-400 to-gray-600 mb-6">No routes found</h3>
+            <p className="text-gray-400 text-lg mb-8 max-w-md mx-auto leading-relaxed">
               {searchTerm || difficultyFilter || terrainFilter 
-                ? "Try adjusting your search criteria or filters" 
-                : "No trail routes are currently available"}
+                ? "Try adjusting your search criteria or filters to discover more routes" 
+                : "No trail routes are currently available. Check back soon for new adventures!"}
             </p>
             {(searchTerm || difficultyFilter || terrainFilter) && (
               <button
                 onClick={clearFilters}
-                className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-amber-600 transition-all duration-300"
+                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-2xl font-bold transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-orange-500/25"
               >
-                Clear Filters
+                Clear All Filters
               </button>
             )}
           </div>
@@ -600,121 +618,146 @@ const Routes = () => {
 
       {/* View Route Modal */}
       {viewingRoute && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-stone-800 to-neutral-800 rounded-2xl p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-stone-700/50 shadow-2xl">
-            <div className="flex justify-between items-start mb-6">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-md">
+          <div className="bg-gradient-to-br from-gray-800/95 to-gray-900/95 rounded-3xl p-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-700/50 shadow-2xl backdrop-blur-sm">
+            <div className="flex justify-between items-start mb-8">
               <div>
-                <h2 className="text-3xl font-bold text-white mb-2">{viewingRoute.name}</h2>
-                <div className="flex items-center gap-3">
-                  <span className={`px-4 py-2 rounded-full text-sm font-semibold text-white ${difficultyColors[viewingRoute.difficulty]}`}>
+                <h2 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-orange-600 mb-4">{viewingRoute.name}</h2>
+                <div className="flex items-center gap-4">
+                  <span className={`px-6 py-3 rounded-full text-base font-bold text-white bg-gradient-to-r ${
+                    viewingRoute.difficulty === 'Beginner' ? 'from-green-500 to-green-600' :
+                    viewingRoute.difficulty === 'Intermediate' ? 'from-yellow-500 to-yellow-600' :
+                    viewingRoute.difficulty === 'Advanced' ? 'from-orange-500 to-orange-600' :
+                    'from-red-500 to-red-600'
+                  } shadow-lg`}>
                     {viewingRoute.difficulty}
                   </span>
-                  <span className="text-gray-300 text-lg">
+                  <span className="text-gray-200 text-xl font-medium">
                     {terrainIcons[viewingRoute.terrain]} {viewingRoute.terrain}
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setViewingRoute(null)}
-                className="text-gray-400 hover:text-white text-3xl transition-colors"
+                className="text-gray-400 hover:text-orange-400 text-4xl transition-all duration-300 p-2 rounded-2xl hover:bg-gray-700/50"
               >
-                ×
+                <FaTimes />
               </button>
             </div>
             
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-3">Description</h3>
-                <p className="text-gray-300 leading-relaxed">{viewingRoute.description}</p>
+            <div className="space-y-8">
+              <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
+                <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                  <div className="p-2 bg-orange-500/20 rounded-xl">
+                    <FaMapMarkedAlt className="text-orange-400" />
+                  </div>
+                  Route Description
+                </h3>
+                <p className="text-gray-200 leading-relaxed text-lg">{viewingRoute.description}</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-white mb-2 flex items-center gap-2">
-                      <FaRoad className="text-orange-500" /> Distance
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
+                    <h4 className="font-bold text-white mb-3 flex items-center gap-3 text-lg">
+                      <div className="p-2 bg-orange-500/20 rounded-xl">
+                        <FaRoad className="text-orange-400" />
+                      </div>
+                      Distance
                     </h4>
-                    <p className="text-gray-300">{viewingRoute.distance} km</p>
+                    <p className="text-gray-200 text-xl font-semibold">{viewingRoute.distance} km</p>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-white mb-2 flex items-center gap-2">
-                      <FaClock className="text-orange-500" /> Estimated Time
+                  <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
+                    <h4 className="font-bold text-white mb-3 flex items-center gap-3 text-lg">
+                      <div className="p-2 bg-orange-500/20 rounded-xl">
+                        <FaClock className="text-orange-400" />
+                      </div>
+                      Estimated Time
                     </h4>
-                    <p className="text-gray-300">{viewingRoute.estimatedTime}</p>
+                    <p className="text-gray-200 text-xl font-semibold">{viewingRoute.estimatedTime}</p>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-white mb-2 flex items-center gap-2">
-                      <FaUsers className="text-orange-500" /> Max Participants
+                  <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
+                    <h4 className="font-bold text-white mb-3 flex items-center gap-3 text-lg">
+                      <div className="p-2 bg-orange-500/20 rounded-xl">
+                        <FaUsers className="text-orange-400" />
+                      </div>
+                      Max Participants
                     </h4>
-                    <p className="text-gray-300">{viewingRoute.maxParticipants} people</p>
+                    <p className="text-gray-200 text-xl font-semibold">{viewingRoute.maxParticipants} people</p>
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-white mb-2">Start Location</h4>
-                    <p className="text-gray-300">{viewingRoute.startLocation}</p>
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
+                    <h4 className="font-bold text-white mb-3 text-lg">Start Location</h4>
+                    <p className="text-gray-200 text-xl font-semibold">{viewingRoute.startLocation}</p>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-white mb-2">End Location</h4>
-                    <p className="text-gray-300">{viewingRoute.endLocation}</p>
+                  <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
+                    <h4 className="font-bold text-white mb-3 text-lg">End Location</h4>
+                    <p className="text-gray-200 text-xl font-semibold">{viewingRoute.endLocation}</p>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-white mb-2">Required Vehicle</h4>
-                    <p className="text-gray-300">{viewingRoute.requiredVehicleType}</p>
+                  <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
+                    <h4 className="font-bold text-white mb-3 text-lg">Required Vehicle</h4>
+                    <p className="text-gray-200 text-xl font-semibold">{viewingRoute.requiredVehicleType}</p>
                   </div>
                 </div>
               </div>
 
               {/* Map Section (Leaflet with two pins, no route line) */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-white mb-3 flex items-center gap-2">
-                  <FaMapMarkedAlt className="text-orange-500" /> Map
+              <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
+                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                  <div className="p-2 bg-orange-500/20 rounded-xl">
+                    <FaMapMarkedAlt className="text-orange-400" />
+                  </div>
+                  Interactive Route Map
                 </h3>
-                <div className="rounded-xl overflow-hidden border border-stone-700">
-                  <div id="route-leaflet-map" className="w-full h-80" />
+                <div className="rounded-2xl overflow-hidden border border-gray-600/50 shadow-2xl">
+                  <div id="route-leaflet-map" className="w-full h-96" />
                 </div>
-                <a
-                  href={
-                    (viewingRoute?.startCoordinates?.lat != null && viewingRoute?.startCoordinates?.lng != null)
-                      ? `https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${viewingRoute.startCoordinates.lat},${viewingRoute.startCoordinates.lng}`
-                      : `https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${encodeURIComponent(viewingRoute.startLocation)}`
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-orange-400 hover:text-orange-300 text-sm mt-2 inline-block"
-                >
-                  Open in Google Maps (Directions to Start)
-                </a>
+                <div className="mt-4 flex justify-center">
+                  <a
+                    href={
+                      (viewingRoute?.startCoordinates?.lat != null && viewingRoute?.startCoordinates?.lng != null)
+                        ? `https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${viewingRoute.startCoordinates.lat},${viewingRoute.startCoordinates.lng}`
+                        : `https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${encodeURIComponent(viewingRoute.startLocation)}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
+                  >
+                    <FaMapMarkedAlt /> Get Directions in Google Maps
+                  </a>
+                </div>
               </div>
 
               {viewingRoute.safetyNotes && (
-                <div>
-                  <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
-                    <FaExclamationTriangle className="text-yellow-500" /> Safety Notes
+                <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-2xl p-6 border border-yellow-500/30">
+                  <h4 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                    <div className="p-2 bg-yellow-500/20 rounded-xl">
+                      <FaExclamationTriangle className="text-yellow-400" />
+                    </div>
+                    Safety Notes
                   </h4>
-                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                    <p className="text-yellow-200">{viewingRoute.safetyNotes}</p>
-                  </div>
+                  <p className="text-yellow-200 text-lg leading-relaxed">{viewingRoute.safetyNotes}</p>
                 </div>
               )}
               
-              <div className="flex gap-4 pt-6 border-t border-stone-700">
+              <div className="flex gap-6 pt-8 border-t border-gray-600/50">
                 <button
                   onClick={() => toggleBookmark(viewingRoute._id)}
-                  className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-3 text-lg shadow-xl ${
                     bookmarkedRoutes.includes(viewingRoute._id)
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                      : 'bg-stone-700 hover:bg-stone-600 text-gray-300'
+                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-orange-500/25'
+                      : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200'
                   }`}
                 >
-                  {bookmarkedRoutes.includes(viewingRoute._id) ? <FaBookmark /> : <FaRegBookmark />}
+                  {bookmarkedRoutes.includes(viewingRoute._id) ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
                   {bookmarkedRoutes.includes(viewingRoute._id) ? 'Bookmarked' : 'Bookmark Route'}
                 </button>
                 <button
                   onClick={() => setViewingRoute(null)}
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-amber-600 transition-all duration-300"
+                  className="flex-1 bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white py-4 rounded-2xl font-bold transition-all duration-300 shadow-xl text-lg"
                 >
-                  Close
+                  Close Details
                 </button>
               </div>
             </div>

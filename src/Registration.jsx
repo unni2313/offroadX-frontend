@@ -4,12 +4,29 @@ import { showSuccess, showError, showWarning, showInfo } from './utils/sweetAler
 import { FaUserPlus, FaSignInAlt, FaMapMarkedAlt, FaEnvelope, FaCheck, FaClock, FaExclamationTriangle } from 'react-icons/fa'
 import { validateEmail, validatePhone, validateName, validatePassword, validatePasswordConfirmation, formatPhoneNumber, formatName } from './utils/validation'
 
+const COUNTRY_CODES = [
+  { code: '+1', country: 'USA / Canada', flag: '🇺🇸' },
+  { code: '+44', country: 'United Kingdom', flag: '🇬🇧' },
+  { code: '+91', country: 'India', flag: '🇮🇳' },
+  { code: '+61', country: 'Australia', flag: '🇦🇺' },
+  { code: '+86', country: 'China', flag: '🇨🇳' },
+  { code: '+81', country: 'Japan', flag: '🇯🇵' },
+  { code: '+33', country: 'France', flag: '🇫🇷' },
+  { code: '+49', country: 'Germany', flag: '🇩🇪' },
+  { code: '+39', country: 'Italy', flag: '🇮🇹' },
+  { code: '+34', country: 'Spain', flag: '🇪🇸' },
+  { code: '+55', country: 'Brazil', flag: '🇧🇷' },
+  { code: '+27', country: 'South Africa', flag: '🇿🇦' },
+]
+
 function Registration() {
   const [formData, setFormData] = useState({
     firstName: '',
     secondName: '',
     email: '',
+    countryCode: '+1',
     phone: '',
+    dob: '',
     password: '',
     confirmPassword: '',
   })
@@ -26,7 +43,9 @@ function Registration() {
     firstName: '',
     secondName: '',
     email: '',
+    countryCode: '',
     phone: '',
+    dob: '',
     password: '',
     confirmPassword: '',
   })
@@ -35,7 +54,9 @@ function Registration() {
     firstName: false,
     secondName: false,
     email: false,
+    countryCode: false,
     phone: false,
+    dob: false,
     password: false,
     confirmPassword: false,
   })
@@ -48,7 +69,9 @@ function Registration() {
 
     // Format values based on field type
     if (name === 'phone') {
-      processedValue = formatPhoneNumber(value)
+      // Remove non-digits and limit to 10 digits
+      const digitsOnly = value.replace(/\D/g, '')
+      processedValue = digitsOnly.slice(0, 10)
     } else if (name === 'firstName' || name === 'secondName') {
       processedValue = formatName(value)
     }
@@ -75,8 +98,32 @@ function Registration() {
       case 'email':
         validation = validateEmail(value)
         break
+      case 'countryCode':
+        if (!value) {
+          validation = { isValid: false, message: 'Country code is required' }
+        }
+        break
       case 'phone':
         validation = validatePhone(value)
+        break
+      case 'dob':
+        if (!value) {
+          validation = { isValid: false, message: 'Date of birth is required' }
+        } else {
+          const dobDate = new Date(value)
+          const today = new Date()
+          const age = today.getFullYear() - dobDate.getFullYear()
+          const monthDiff = today.getMonth() - dobDate.getMonth()
+          const dayDiff = today.getDate() - dobDate.getDate()
+          
+          const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age
+          
+          if (actualAge < 18) {
+            validation = { isValid: false, message: 'You must be at least 18 years old' }
+          } else if (actualAge > 60) {
+            validation = { isValid: false, message: 'You must be no older than 60 years old' }
+          }
+        }
         break
       case 'password':
         validation = validatePassword(value)
@@ -97,7 +144,7 @@ function Registration() {
   }
 
   const validateAllFields = () => {
-    const fields = ['firstName', 'secondName', 'email', 'phone', 'password', 'confirmPassword']
+    const fields = ['firstName', 'secondName', 'email', 'countryCode', 'phone', 'dob', 'password', 'confirmPassword']
     let allValid = true
 
     fields.forEach(field => {
@@ -499,22 +546,76 @@ function Registration() {
 
               <div>
                 <label className="block text-stone-200 text-sm font-semibold mb-3 tracking-wide">Phone Number</label>
+                <div className="flex gap-3">
+                  <select
+                    name="countryCode"
+                    value={formData.countryCode}
+                    onChange={handleChange}
+                    className={`px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 appearance-none cursor-pointer bg-no-repeat bg-right pr-10 ${
+                      validationErrors.countryCode && touchedFields.countryCode
+                        ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                        : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
+                    }`}
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a1a1a1' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                      backgroundPosition: 'right 1rem center'
+                    }}
+                  >
+                    {COUNTRY_CODES.map((item) => (
+                      <option key={item.code} value={item.code} className="bg-stone-900 text-white">
+                        {item.flag} {item.code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="1234567890"
+                    maxLength="10"
+                    required
+                    className={`flex-1 px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
+                      validationErrors.phone && touchedFields.phone
+                        ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
+                        : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
+                    }`}
+                  />
+                </div>
+                <div className="mt-2">
+                  {validationErrors.countryCode && touchedFields.countryCode && (
+                    <div className="flex items-center text-red-400 text-sm">
+                      <FaExclamationTriangle className="mr-2" />
+                      {validationErrors.countryCode}
+                    </div>
+                  )}
+                  {validationErrors.phone && touchedFields.phone && (
+                    <div className="flex items-center text-red-400 text-sm">
+                      <FaExclamationTriangle className="mr-2" />
+                      {validationErrors.phone}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-stone-200 text-sm font-semibold mb-3 tracking-wide">Date of Birth</label>
                 <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
                   onChange={handleChange}
                   required
                   className={`w-full px-6 py-4 bg-black/60 border rounded-2xl focus:outline-none focus:ring-2 text-white placeholder-stone-400 backdrop-blur-sm transition-all duration-300 hover:border-stone-500/70 ${
-                    validationErrors.phone && touchedFields.phone
+                    validationErrors.dob && touchedFields.dob
                       ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500'
                       : 'border-stone-600/50 focus:ring-orange-500/50 focus:border-orange-500/50'
                   }`}
                 />
-                {validationErrors.phone && touchedFields.phone && (
+                {validationErrors.dob && touchedFields.dob && (
                   <div className="mt-2 flex items-center text-red-400 text-sm">
                     <FaExclamationTriangle className="mr-2" />
-                    {validationErrors.phone}
+                    {validationErrors.dob}
                   </div>
                 )}
               </div>

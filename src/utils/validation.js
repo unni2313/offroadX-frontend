@@ -24,7 +24,7 @@ export const validateEmail = (email) => {
 }
 
 /**
- * Validates phone number format
+ * Validates phone number format (10 digits only)
  * @param {string} phone - Phone number to validate
  * @returns {object} - { isValid: boolean, message: string }
  */
@@ -36,19 +36,15 @@ export const validatePhone = (phone) => {
   // Remove all non-digit characters for validation
   const cleanPhone = phone.replace(/\D/g, '')
   
-  // Check if phone contains only digits and is reasonable length
-  if (cleanPhone.length < 10) {
-    return { isValid: false, message: 'Phone number must be at least 10 digits' }
+  // Check if phone contains exactly 10 digits
+  if (cleanPhone.length !== 10) {
+    return { isValid: false, message: 'Phone number must be exactly 10 digits' }
   }
 
-  if (cleanPhone.length > 15) {
-    return { isValid: false, message: 'Phone number is too long (maximum 15 digits)' }
-  }
-
-  // Check for valid phone patterns (international format)
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
+  // Check for valid phone pattern (10 digits)
+  const phoneRegex = /^\d{10}$/
   if (!phoneRegex.test(cleanPhone)) {
-    return { isValid: false, message: 'Please enter a valid phone number' }
+    return { isValid: false, message: 'Please enter a valid 10-digit phone number' }
   }
 
   return { isValid: true, message: '' }
@@ -158,7 +154,7 @@ export const validatePasswordConfirmation = (password, confirmPassword) => {
 }
 
 /**
- * Formats phone number for display
+ * Formats phone number for display (10 digits only)
  * @param {string} phone - Raw phone number
  * @returns {string} - Formatted phone number
  */
@@ -168,14 +164,12 @@ export const formatPhoneNumber = (phone) => {
   // Remove all non-digit characters
   const cleaned = phone.replace(/\D/g, '')
   
-  // Format based on length
+  // Format 10-digit phone number as (XXX) XXX-XXXX
   if (cleaned.length === 10) {
     return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
-  } else if (cleaned.length === 11 && cleaned[0] === '1') {
-    return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`
   }
   
-  return phone // Return original if doesn't match common patterns
+  return phone // Return original if doesn't match pattern
 }
 
 /**
