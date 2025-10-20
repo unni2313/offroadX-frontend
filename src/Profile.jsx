@@ -24,6 +24,7 @@ import {
   FaTimes
 } from 'react-icons/fa';
 import VehiclesSection from './VehiclesSection';
+import API_BASE_URL from './config/api';
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -86,7 +87,7 @@ function Profile() {
   const fetchProfileData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -145,7 +146,7 @@ function Profile() {
       const formData = new FormData();
       formData.append('photo', file);
 
-      const res = await fetch('http://localhost:5000/api/profile/photo', {
+      const res = await fetch(`${API_BASE_URL}/api/profile/photo`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -177,7 +178,7 @@ function Profile() {
     setPhotoUploading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/profile/photo', {
+      const res = await fetch(`${API_BASE_URL}/api/profile/photo`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -226,7 +227,7 @@ function Profile() {
       const formData = new FormData();
       formData.append('license', file);
 
-      const res = await fetch('http://localhost:5000/api/profile/license', {
+      const res = await fetch(`${API_BASE_URL}/api/profile/license`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -255,7 +256,7 @@ function Profile() {
     setLicenseUploading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/profile/license', {
+      const res = await fetch(`${API_BASE_URL}/api/profile/license`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -364,7 +365,7 @@ function Profile() {
         dataToSend.newPassword = editFormData.newPassword;
       }
 
-      const response = await fetch('http://localhost:5000/api/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

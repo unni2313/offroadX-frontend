@@ -9,6 +9,7 @@ import {
   FaFilter,
   FaSearch
 } from 'react-icons/fa';
+import API_BASE_URL from './config/api';
 
 const UserRoutes = () => {
   const [routes, setRoutes] = useState([]);
@@ -47,7 +48,7 @@ const UserRoutes = () => {
   const fetchRoutes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/routes', {
+      const response = await fetch(`${API_BASE_URL}/api/routes`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

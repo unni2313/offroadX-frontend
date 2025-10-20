@@ -11,6 +11,7 @@ import {
   FaUserEdit,
   FaUsers
 } from 'react-icons/fa';
+import API_BASE_URL from './config/api';
 
 /* ============================================================================
    CONSTANTS & CONFIGURATION
@@ -693,7 +694,7 @@ export default function Participants() {
       if (verifiedFilter) params.append('verified', verifiedFilter);
       params.append('stats', 'true');
 
-      const response = await fetch(`http://localhost:5000/api/admin/users?${params.toString()}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -750,7 +751,7 @@ export default function Participants() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/users/${editingId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${editingId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { showSuccess, showError, showWarning, showConfirm } from './utils/sweetAlert'
 import { validateName, validatePhone, formatName, formatPhoneNumber } from './utils/validation'
+import API_BASE_URL from './config/api'
 import {
   FaSignOutAlt,
   FaUsers,
@@ -32,6 +33,7 @@ import {
   FaHourglassHalf,
   FaClipboardList
 } from 'react-icons/fa'
+import GuidelinesModal from './components/GuidelinesModal'
 
 /* ============================================================================
    CONSTANTS & CONFIGURATION
@@ -1449,6 +1451,7 @@ function Events() {
   const [showVerificationModal, setShowVerificationModal] = useState(false)
   const [showResultsModal, setShowResultsModal] = useState(false)
   const [showParticipantVerificationModal, setShowParticipantVerificationModal] = useState(false)
+  const [guidelinesLoading, setGuidelinesLoading] = useState(false)
 
   // Selected Event/Item
   const [selectedEvent, setSelectedEvent] = useState(null)
@@ -1507,7 +1510,7 @@ function Events() {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch('http://localhost:5000/api/events')
+      const response = await fetch(`${API_BASE_URL}/api/events`)
       if (!response.ok) throw new Error('Failed to fetch events')
       const data = await response.json()
       setEvents(data.events || [])
@@ -1523,7 +1526,7 @@ function Events() {
     try {
       setParticipantsLoading(true)
       setParticipantsError(null)
-      const response = await fetch(`http://localhost:5000/api/events/${eventId}/participants`, {
+      const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/participants`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
@@ -1542,8 +1545,8 @@ function Events() {
       setRegistrationsLoading(true)
       setRegistrationsError(null)
       const url = status
-        ? `http://localhost:5000/api/events/${eventId}/registrations?status=${status}`
-        : `http://localhost:5000/api/events/${eventId}/registrations`
+        ? `${API_BASE_URL}/api/events/${eventId}/registrations?status=${status}`
+        : `${API_BASE_URL}/api/events/${eventId}/registrations`
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -1562,7 +1565,7 @@ function Events() {
     try {
       setRacesLoading(true)
       setRacesError(null)
-      const response = await fetch(`http://localhost:5000/api/races/event/${eventId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/races/event/${eventId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
@@ -1579,7 +1582,7 @@ function Events() {
   const fetchRoutes = useCallback(async () => {
     try {
       setRoutesLoading(true)
-      const response = await fetch('http://localhost:5000/api/routes', {
+      const response = await fetch(`${API_BASE_URL}/api/routes`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
@@ -1597,7 +1600,7 @@ function Events() {
     try {
       setResultsLoading(true)
       setResultsError(null)
-      const response = await fetch(`http://localhost:5000/api/races/${raceId}/results`, {
+      const response = await fetch(`${API_BASE_URL}/api/races/${raceId}/results`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       
@@ -1628,7 +1631,7 @@ function Events() {
   // ========== EVENT HANDLERS ==========
   const handleCreateEvent = useCallback(async (formData) => {
     try {
-      const response = await fetch('http://localhost:5000/api/events/create', {
+      const response = await fetch(`${API_BASE_URL}/api/events/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1650,7 +1653,7 @@ function Events() {
   const handleEditEvent = useCallback(async (formData) => {
     if (!selectedEvent) return
     try {
-      const response = await fetch(`http://localhost:5000/api/events/${selectedEvent._id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/events/${selectedEvent._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1678,7 +1681,7 @@ function Events() {
     )
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/events/${eventId}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` }
         })
@@ -1703,7 +1706,7 @@ function Events() {
     )
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`http://localhost:5000/api/events/registrations/${registrationId}/approve`, {
+        const response = await fetch(`${API_BASE_URL}/api/events/registrations/${registrationId}/approve`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1737,7 +1740,7 @@ function Events() {
     )
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`http://localhost:5000/api/events/registrations/${registrationId}/reject`, {
+        const response = await fetch(`${API_BASE_URL}/api/events/registrations/${registrationId}/reject`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1792,6 +1795,39 @@ function Events() {
     setShowGuidelinesModal(true)
   }, [])
 
+  const handleUpdateGuidelines = useCallback(async (eventId, payload) => {
+    try {
+      setGuidelinesLoading(true)
+      const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/guidelines`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to update event guidelines')
+      }
+
+      showSuccess('Guidelines Updated', 'Event guidelines have been saved successfully.')
+
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event._id === eventId ? { ...event, guidelines: data?.event?.guidelines || payload } : event
+        )
+      )
+    } catch (error) {
+      console.error('Error updating guidelines:', error)
+      showError('Error!', error.message || 'Failed to update event guidelines. Please try again.')
+      throw error
+    } finally {
+      setGuidelinesLoading(false)
+    }
+  }, [token])
+
   const handleOpenVerification = useCallback((event) => {
     setSelectedEvent(event)
     setShowVerificationModal(true)
@@ -1805,7 +1841,7 @@ function Events() {
 
   const handleVerifyParticipant = useCallback(async (resultId, checklist, notes) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/races/${selectedRace._id}/verify-participant`, {
+      const response = await fetch(`${API_BASE_URL}/api/races/${selectedRace._id}/verify-participant`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1844,7 +1880,7 @@ function Events() {
 
   const handleSaveResult = useCallback(async (resultId, score, finishingTimeMs, position, notes, vehicle) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/races/${selectedRace._id}/add-result`, {
+      const response = await fetch(`${API_BASE_URL}/api/races/${selectedRace._id}/add-result`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2029,6 +2065,17 @@ function Events() {
         loading={racesLoading}
         error={racesError}
         onViewResults={handleOpenResults}
+      />
+
+      <GuidelinesModal
+        isOpen={showGuidelinesModal}
+        event={selectedEvent}
+        onClose={() => {
+          setShowGuidelinesModal(false)
+          setSelectedEvent(null)
+        }}
+        onSave={handleUpdateGuidelines}
+        loading={guidelinesLoading}
       />
 
       <ResultsModal

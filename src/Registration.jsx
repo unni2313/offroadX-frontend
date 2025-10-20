@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { showSuccess, showError, showWarning, showInfo } from './utils/sweetAlert'
 import { FaUserPlus, FaSignInAlt, FaMapMarkedAlt, FaEnvelope, FaCheck, FaClock, FaExclamationTriangle } from 'react-icons/fa'
 import { validateEmail, validatePhone, validateName, validatePassword, validatePasswordConfirmation, formatPhoneNumber, formatName } from './utils/validation'
+import API_BASE_URL from './config/api'
 
 const COUNTRY_CODES = [
   { code: '+1', country: 'USA / Canada', flag: '🇺🇸' },
@@ -178,7 +179,7 @@ function Registration() {
     setOtpData({ ...otpData, isLoading: true })
 
     try {
-      const response = await fetch('http://localhost:5000/api/otp/send-otp', {
+      const response = await fetch(`${API_BASE_URL}/api/otp/send-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -221,7 +222,7 @@ function Registration() {
     setOtpData({ ...otpData, isLoading: true })
 
     try {
-      const response = await fetch('http://localhost:5000/api/otp/verify-otp', {
+      const response = await fetch(`${API_BASE_URL}/api/otp/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -257,7 +258,7 @@ function Registration() {
     setOtpData({ ...otpData, isLoading: true })
 
     try {
-      const response = await fetch('http://localhost:5000/api/otp/resend-otp', {
+      const response = await fetch(`${API_BASE_URL}/api/otp/resend-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -324,7 +325,7 @@ function Registration() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/register', {
+      const response = await fetch(`${API_BASE_URL}/api/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

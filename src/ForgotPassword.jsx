@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from './config/api';
 import { FaMapMarkedAlt, FaEnvelope, FaArrowLeft, FaCheckCircle } from 'react-icons/fa';
 
 function ForgotPassword() {
@@ -17,7 +18,7 @@ function ForgotPassword() {
     setMessage('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/password/forgot-password', {
+      const response = await axios.post(`${API_BASE_URL}/api/password/forgot-password`, {
         email,
       });
 

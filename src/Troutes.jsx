@@ -21,6 +21,7 @@ import {
   FaBars,
   FaTimes
 } from 'react-icons/fa';
+import API_BASE_URL from './config/api';
 
 const Routes = () => {
   const [routes, setRoutes] = useState([]);
@@ -74,7 +75,7 @@ const Routes = () => {
   const fetchRoutes = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/routes?isActive=true', {
+      const response = await fetch(`${API_BASE_URL}/api/routes?isActive=true`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -146,7 +147,7 @@ const Routes = () => {
   const fetchProfileData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/profile', {
+      const response = await fetch(`${API_BASE_URL}/api/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
