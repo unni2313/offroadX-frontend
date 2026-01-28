@@ -21,6 +21,8 @@ import AdminProfile from './AdminProfile.jsx'
 import UserRoutes from './UserRoutes.jsx'
 import Troutes from './Troutes.jsx'
 import Achievements from './Achievements.jsx'
+import AdminEcommerce from './AdminEcommerce.jsx'
+import UserEcommerce from './UserEcommerce.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -31,7 +33,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/register" element={<Registration />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        
+
         {/* Protected Routes */}
         <Route path="/home" element={
           <ProtectedRoute requiredRole="user">
@@ -49,6 +51,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="events" element={<Events />} />
           <Route path="participants" element={<Participants />} />
           <Route path="routes" element={<AdminTrails />} />
+          <Route path="ecommerce" element={<AdminEcommerce />} />
           <Route path="users/:id" element={<AdminUserProfile />} />
           <Route path="profile" element={<AdminProfile />} />
         </Route>
@@ -68,6 +71,12 @@ createRoot(document.getElementById('root')).render(
         <Route path="/achievements" element={
           <ProtectedRoute requiredRole="user">
             <Achievements />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/ecommerce" element={
+          <ProtectedRoute requiredRole="user">
+            <UserEcommerce />
           </ProtectedRoute>
         } />
 

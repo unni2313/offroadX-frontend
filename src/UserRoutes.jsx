@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import { Link, useNavigate } from 'react-router-dom';
+import API_BASE_URL from './config/api';
+import {
   FaMapMarkedAlt,
   FaClock,
   FaRoad,
@@ -7,11 +9,32 @@ import {
   FaUsers,
   FaExclamationTriangle,
   FaFilter,
-  FaSearch
+  FaSearch,
+  FaCompass,
+  FaCalendarAlt,
+  FaTrophy,
+  FaShoppingCart,
+  FaBell,
+  FaUser,
+  FaSignOutAlt,
+  FaBars,
+  FaTimes,
+  FaArrowRight,
+  FaBolt,
+  FaShieldAlt,
+  FaTools,
+  FaGlobe,
+  FaRoute
 } from 'react-icons/fa';
-import API_BASE_URL from './config/api';
+
 
 const UserRoutes = () => {
+  // Auth & Layout State
+  const [user, setUser] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Routes State
   const [routes, setRoutes] = useState([]);
   const [filteredRoutes, setFilteredRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,45 +43,43 @@ const UserRoutes = () => {
   const [terrainFilter, setTerrainFilter] = useState('');
   const [selectedRoute, setSelectedRoute] = useState(null);
 
-  const difficultyColors = {
-    'Beginner': 'bg-green-500',
-    'Intermediate': 'bg-yellow-500',
-    'Advanced': 'bg-orange-500',
-    'Expert': 'bg-red-500'
-  };
-
-  const terrainIcons = {
-    'Rocky': '🪨',
-    'Muddy': '🟤',
-    'Sandy': '🏜️',
-    'Forest': '🌲',
-    'Desert': '🏜️',
-    'Mountain': '⛰️',
-    'Mixed': '🌍'
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchRoutes();
-  }, []);
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+      fetchProfileData();
+      fetchRoutes();
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
 
-  useEffect(() => {
-    filterRoutes();
-  }, [routes, searchTerm, difficultyFilter, terrainFilter]);
+  const fetchProfileData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const fetchRoutes = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/routes`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      
       if (response.ok) {
         const data = await response.json();
         setRoutes(data);
-      } else {
-        console.error('Failed to fetch routes');
       }
     } catch (error) {
       console.error('Error fetching routes:', error);
@@ -67,10 +88,21 @@ const UserRoutes = () => {
     }
   };
 
-  const filterRoutes = () => {
-    let filtered = routes;
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
-    // Search filter
+  const handleProfileClick = () => {
+    navigate('/profile');
+    setIsMobileMenuOpen(false);
+  };
+
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
+  useEffect(() => {
+    let filtered = routes;
     if (searchTerm) {
       filtered = filtered.filter(route =>
         route.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,278 +111,419 @@ const UserRoutes = () => {
         route.endLocation.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
-    // Difficulty filter
-    if (difficultyFilter) {
-      filtered = filtered.filter(route => route.difficulty === difficultyFilter);
-    }
-
-    // Terrain filter
-    if (terrainFilter) {
-      filtered = filtered.filter(route => route.terrain === terrainFilter);
-    }
-
+    if (difficultyFilter) filtered = filtered.filter(route => route.difficulty === difficultyFilter);
+    if (terrainFilter) filtered = filtered.filter(route => route.terrain === terrainFilter);
     setFilteredRoutes(filtered);
+  }, [routes, searchTerm, difficultyFilter, terrainFilter]);
+
+  const terrainIcons = {
+    'Rocky': '🪨', 'Muddy': '🟤', 'Sandy': '🏜️', 'Forest': '🌲',
+    'Desert': '🏜️', 'Mountain': '⛰️', 'Mixed': '🌍'
   };
 
-  const clearFilters = () => {
-    setSearchTerm('');
-    setDifficultyFilter('');
-    setTerrainFilter('');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-      </div>
-    );
-  }
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center gap-4 mb-4">
-            <FaMapMarkedAlt className="text-4xl text-orange-500" />
-            <div>
-              <h1 className="text-4xl font-bold">Trail Routes</h1>
-              <p className="text-gray-400 text-lg">Discover amazing offroad adventures</p>
-            </div>
-          </div>
-
-          {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4 mt-6">
-            <div className="flex-1 relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search routes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-orange-500"
-              />
-            </div>
-            
-            <select
-              value={difficultyFilter}
-              onChange={(e) => setDifficultyFilter(e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
-            >
-              <option value="">All Difficulties</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-              <option value="Expert">Expert</option>
-            </select>
-            
-            <select
-              value={terrainFilter}
-              onChange={(e) => setTerrainFilter(e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500"
-            >
-              <option value="">All Terrains</option>
-              <option value="Rocky">Rocky</option>
-              <option value="Muddy">Muddy</option>
-              <option value="Sandy">Sandy</option>
-              <option value="Forest">Forest</option>
-              <option value="Desert">Desert</option>
-              <option value="Mountain">Mountain</option>
-              <option value="Mixed">Mixed</option>
-            </select>
-            
-            {(searchTerm || difficultyFilter || terrainFilter) && (
-              <button
-                onClick={clearFilters}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg transition-colors"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#0a0a0a] text-stone-100 relative overflow-x-hidden">
+      {/* Tactical Background Overlay */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]"></div>
+        <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-orange-900/10 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-0 left-0 w-[50%] h-[50%] bg-amber-900/10 rounded-full blur-[120px]"></div>
       </div>
 
-      {/* Routes Grid */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {filteredRoutes.length === 0 ? (
-          <div className="text-center py-12">
-            <FaMapMarkedAlt className="text-6xl text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-400 mb-2">
-              {routes.length === 0 ? 'No routes available' : 'No routes match your filters'}
-            </h3>
-            <p className="text-gray-500">
-              {routes.length === 0 
-                ? 'Check back later for new trail routes' 
-                : 'Try adjusting your search criteria'
-              }
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRoutes.map((route) => (
-              <div 
-                key={route._id} 
-                className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-orange-500/50 transition-all duration-300 shadow-lg cursor-pointer transform hover:scale-105"
-                onClick={() => setSelectedRoute(route)}
-              >
-                {/* Route Header */}
-                <div className="mb-4">
-                  <h3 className="text-xl font-bold text-white mb-2">{route.name}</h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${difficultyColors[route.difficulty]}`}>
-                      {route.difficulty}
-                    </span>
-                    <span className="text-gray-400 text-sm">
-                      {terrainIcons[route.terrain]} {route.terrain}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Route Info */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <FaRoad className="text-orange-500" />
-                    <span className="text-sm">{route.distance} km</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <FaClock className="text-orange-500" />
-                    <span className="text-sm">{route.estimatedTime}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <FaUsers className="text-orange-500" />
-                    <span className="text-sm">Max {route.maxParticipants} participants</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <FaMapMarkedAlt className="text-orange-500" />
-                    <span className="text-sm">{route.startLocation} → {route.endLocation}</span>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <p className="text-gray-400 text-sm mb-4 line-clamp-3">{route.description}</p>
-
-                {/* Safety Notes */}
-                {route.safetyNotes && (
-                  <div className="flex items-start gap-2 mb-4 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                    <FaExclamationTriangle className="text-yellow-500 mt-0.5 flex-shrink-0" size={14} />
-                    <p className="text-yellow-200 text-xs">{route.safetyNotes}</p>
-                  </div>
-                )}
-
-                {/* Vehicle Type */}
-                {route.requiredVehicleType !== 'Any' && (
-                  <div className="text-center">
-                    <span className="inline-block bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-medium">
-                      Requires: {route.requiredVehicleType}
-                    </span>
-                  </div>
-                )}
+      {/* Navigation Header */}
+      <nav className="relative z-50 bg-stone-900/80 border-b border-stone-800/50 sticky top-0 backdrop-blur-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            {/* Logo */}
+            <div className="flex items-center space-x-4 group cursor-pointer" onClick={() => navigate('/home')}>
+              <div className="relative">
+                <FaMapMarkedAlt className="text-orange-500 text-2xl md:text-3xl transform group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-xl animate-pulse"></div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Route Detail Modal */}
-      {selectedRoute && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-2xl font-bold text-white">{selectedRoute.name}</h2>
-              <button
-                onClick={() => setSelectedRoute(null)}
-                className="text-gray-400 hover:text-white text-2xl"
-              >
-                ×
-              </button>
+              <span className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 tracking-tighter">
+                OffroadX
+              </span>
             </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold text-white ${difficultyColors[selectedRoute.difficulty]}`}>
-                  {selectedRoute.difficulty}
-                </span>
-                <span className="text-gray-300">
-                  {terrainIcons[selectedRoute.terrain]} {selectedRoute.terrain}
-                </span>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Description</h3>
-                <p className="text-gray-300">{selectedRoute.description}</p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold text-white mb-1">Distance</h4>
-                  <p className="text-gray-300">{selectedRoute.distance} km</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-1">Estimated Time</h4>
-                  <p className="text-gray-300">{selectedRoute.estimatedTime}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-1">Start Location</h4>
-                  <p className="text-gray-300">{selectedRoute.startLocation}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-1">End Location</h4>
-                  <p className="text-gray-300">{selectedRoute.endLocation}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-1">Vehicle Type</h4>
-                  <p className="text-gray-300">{selectedRoute.requiredVehicleType}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-white mb-1">Max Participants</h4>
-                  <p className="text-gray-300">{selectedRoute.maxParticipants}</p>
-                </div>
-              </div>
-              
-              {selectedRoute.safetyNotes && (
-                <div>
-                  <h4 className="font-semibold text-white mb-2">Safety Notes</h4>
-                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-                    <p className="text-yellow-200">{selectedRoute.safetyNotes}</p>
-                  </div>
-                </div>
-              )}
-              
-              {selectedRoute.waypoints && selectedRoute.waypoints.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-white mb-2">Waypoints</h4>
-                  <div className="space-y-2">
-                    {selectedRoute.waypoints.map((waypoint, index) => (
-                      <div key={index} className="bg-gray-700 rounded-lg p-3">
-                        <h5 className="font-medium text-white">{waypoint.name}</h5>
-                        {waypoint.description && (
-                          <p className="text-gray-300 text-sm">{waypoint.description}</p>
-                        )}
-                        {waypoint.coordinates && (
-                          <p className="text-gray-400 text-xs">
-                            Lat: {waypoint.coordinates.lat}, Lng: {waypoint.coordinates.lng}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <div className="pt-4 border-t border-gray-700">
-                <button
-                  onClick={() => setSelectedRoute(null)}
-                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-amber-600 transition-all duration-300"
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              {[
+                { to: '/home', icon: FaCompass, label: 'Home' },
+                { to: '/events', icon: FaCalendarAlt, label: 'Events' },
+                { to: '/routes', icon: FaRoute, label: 'Routes', active: true },
+                { to: '/achievements', icon: FaTrophy, label: 'Achievements' },
+                { to: '/ecommerce', icon: FaShoppingCart, label: 'Shop' }
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  className={`relative px-3 py-2 text-sm font-bold tracking-widest uppercase transition-all duration-300 flex items-center space-x-2 group ${item.active ? 'text-orange-500' : 'text-stone-400 hover:text-white'}`}
                 >
-                  Close
+                  <item.icon className="text-lg" />
+                  <span>{item.label}</span>
+                  {item.active && (
+                    <div className="absolute -bottom-1 left-3 right-3 h-0.5 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.8)]"></div>
+                  )}
+                </Link>
+              ))}
+            </div>
+
+            {/* User Menu */}
+            <div className="hidden md:flex items-center space-x-6">
+              <button className="text-stone-300 hover:text-orange-400 relative">
+                <FaBell className="text-xl" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+              </button>
+              <div className="flex items-center p-1.5 bg-stone-800/50 rounded-2xl border border-stone-700/50 backdrop-blur-sm">
+                <button onClick={handleProfileClick} className="flex items-center space-x-3 pr-4 pl-2 hover:opacity-80 transition-opacity">
+                  {profileData?.profilePhotoUrl ? (
+                    <img src={profileData.profilePhotoUrl} alt="Profile" className="w-9 h-9 rounded-xl object-cover border border-orange-500/30" />
+                  ) : (
+                    <div className="w-9 h-9 bg-orange-600 rounded-xl flex items-center justify-center">
+                      <FaUser className="text-white text-sm" />
+                    </div>
+                  )}
+                  <span className="font-bold text-sm tracking-tight">{user.firstName}</span>
+                </button>
+                <div className="w-px h-6 bg-stone-700 mx-2"></div>
+                <button onClick={handleLogout} className="p-2 text-stone-400 hover:text-red-400 transition-colors">
+                  <FaSignOutAlt />
                 </button>
               </div>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center space-x-4">
+              <button onClick={toggleMobileMenu} className="text-stone-300 p-2 bg-stone-800/50 rounded-xl border border-stone-700/50">
+                {isMobileMenuOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Sidebar */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl animate-in fade-in duration-300 p-6 flex flex-col">
+          <div className="flex justify-between items-center mb-12">
+            <div className="flex items-center space-x-3">
+              <FaMapMarkedAlt className="text-orange-500 text-3xl" />
+              <span className="text-2xl font-black text-white tracking-widest uppercase">OFFROADX</span>
+            </div>
+            <button onClick={toggleMobileMenu} className="p-3 bg-stone-800 rounded-2xl border border-stone-700 text-white">
+              <FaTimes className="text-xl" />
+            </button>
+          </div>
+          <div className="space-y-4 flex-1 overflow-y-auto">
+            {[
+              { to: '/home', icon: FaCompass, label: 'Home' },
+              { to: '/events', icon: FaCalendarAlt, label: 'Events' },
+              { to: '/routes', icon: FaRoute, label: 'Routes', active: true },
+              { to: '/achievements', icon: FaTrophy, label: 'Achievements' },
+              { to: '/ecommerce', icon: FaShoppingCart, label: 'Shop' }
+            ].map((item) => (
+              <Link
+                key={item.label}
+                to={item.to}
+                className={`flex items-center space-x-4 p-5 rounded-2xl text-lg font-bold transition-all ${item.active ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-stone-400 bg-stone-900/50 border border-stone-800/50 hover:bg-stone-800'}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <item.icon />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </div>
+          <button onClick={handleLogout} className="mt-8 flex items-center justify-center space-x-3 p-6 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl font-bold">
+            <FaSignOutAlt />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <main className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-8 lg:py-12">
+
+        {/* Scouting Header */}
+        <header className="mb-12 flex flex-col md:flex-row justify-between items-end gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div>
+            <div className="inline-flex items-center space-x-2 px-3 py-1 bg-orange-500/10 border border-orange-500/20 rounded-lg text-orange-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+              <FaGlobe className="animate-pulse" />
+              <span>TACTICAL RECONNAISSANCE</span>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter leading-none mb-2">TRIAL CATALOG</h1>
+            <p className="text-stone-500 font-bold uppercase tracking-widest text-xs">Examine topographical layouts and technical route specifications.</p>
+          </div>
+
+          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" />
+              <input
+                type="text"
+                placeholder="SEARCH TRIALS..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-stone-900 border border-stone-800 rounded-2xl py-3 pl-11 pr-4 text-xs font-bold tracking-widest text-white focus:outline-none focus:border-orange-500 w-full sm:w-64 uppercase"
+              />
+            </div>
+            <div className="relative">
+              <FaFilter className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" />
+              <select
+                value={difficultyFilter}
+                onChange={(e) => setDifficultyFilter(e.target.value)}
+                className="bg-stone-900 border border-stone-800 rounded-2xl py-3 pl-11 pr-8 text-xs font-black tracking-widest text-orange-500 focus:outline-none focus:border-orange-500 appearance-none w-full uppercase"
+              >
+                <option value="">ALL RANKS</option>
+                <option value="Beginner">RECRUIT</option>
+                <option value="Intermediate">OPERATIVE</option>
+                <option value="Advanced">VETERAN</option>
+                <option value="Expert">ELITE</option>
+              </select>
+            </div>
+          </div>
+        </header>
+
+        {/* Categories Bar */}
+        <section className="mb-10 flex overflow-x-auto scrollbar-hide p-1 gap-3">
+          {[
+            { id: '', label: 'ALL TERRAINS' },
+            ...Object.keys(terrainIcons).map(t => ({ id: t, label: t.toUpperCase() }))
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setTerrainFilter(tab.id)}
+              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap ${terrainFilter === tab.id ? 'bg-orange-500 text-black shadow-lg shadow-orange-500/20' : 'bg-stone-900 text-stone-500 border border-stone-800 hover:border-stone-700 hover:text-stone-300'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </section>
+
+
+        {/* Routes Grid */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24 space-y-4">
+            <div className="w-16 h-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div>
+            <p className="text-stone-600 font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Scanning Terrain Data...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredRoutes.length > 0 ? filteredRoutes.map((route, index) => {
+              const terrainImages = {
+                'Rocky': 'https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=2070',
+                'Muddy': 'https://images.unsplash.com/photo-1591123120675-6f7f1aae0e5b?q=80&w=2069',
+                'Sandy': 'https://images.unsplash.com/photo-1509316785289-025f543463a5?q=80&w=2070',
+                'Forest': 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071',
+                'Desert': 'https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?q=80&w=2070',
+                'Mountain': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070',
+                'Mixed': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=2074'
+              };
+
+              return (
+                <div
+                  key={route._id}
+                  className="group relative bg-stone-900/40 border border-stone-800/80 rounded-[2.5rem] overflow-hidden flex flex-col hover:bg-stone-900/60 hover:border-orange-500/40 transition-all duration-500 animate-in fade-in slide-in-from-bottom-8"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  {/* Image Part */}
+                  <div className="relative aspect-[16/10] overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10"></div>
+                    <img
+                      src={terrainImages[route.terrain] || 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1000'}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]"
+                      alt={route.name}
+                    />
+
+                    <div className="absolute top-4 left-4 z-20 flex flex-wrap gap-2">
+                      <span className="px-3 py-1 bg-black/80 backdrop-blur border border-stone-700/50 rounded-lg text-[10px] font-black text-orange-500 tracking-widest uppercase">
+                        RANK: {route.difficulty === 'Expert' ? 'ELITE' : route.difficulty === 'Advanced' ? 'VETERAN' : route.difficulty === 'Intermediate' ? 'OPERATIVE' : 'RECRUIT'}
+                      </span>
+                      <span className="px-3 py-1 bg-black/80 backdrop-blur border border-stone-700/50 rounded-lg text-[10px] font-black text-white tracking-widest uppercase">
+                        {terrainIcons[route.terrain] || '🗺️'} {route.terrain.toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-between items-end">
+                      <div className="flex items-center space-x-2 text-stone-300">
+                        <FaMapMarkerAlt className="text-orange-500" />
+                        <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[200px]">{route.startLocation} ➔ {route.endLocation}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content Part */}
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight group-hover:text-orange-500 transition-colors leading-tight">{route.name}</h3>
+
+                    {/* Specs Row */}
+                    <div className="flex gap-6 mb-6">
+                      <div className="flex items-center space-x-2">
+                        <FaRoute className="text-orange-500 text-xs" />
+                        <span className="text-[10px] font-black text-stone-300 uppercase tracking-widest">{route.distance} KM</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <FaClock className="text-orange-500 text-xs" />
+                        <span className="text-[10px] font-black text-stone-300 uppercase tracking-widest">{route.estimatedTime}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-stone-500 text-sm line-clamp-2 mb-8 font-medium leading-relaxed">{route.description}</p>
+
+                    <div className="mt-auto grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setSelectedRoute(route)}
+                        className="h-14 rounded-2xl bg-stone-800 hover:bg-stone-700 text-white font-black text-[10px] uppercase tracking-widest transition-all"
+                      >
+                        TRIAL INTEL
+                      </button>
+                      <button
+                        onClick={() => setSelectedRoute(route)}
+                        className="h-14 rounded-2xl bg-orange-500 text-black font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all shadow-xl shadow-orange-500/20 active:scale-95"
+                      >
+                        EXPLORE NOW
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }) : (
+
+              <div className="col-span-full py-32 text-center">
+                <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2rem] bg-stone-900 border border-stone-800 mb-6 text-stone-700">
+                  <FaMapMarkedAlt size={32} />
+                </div>
+                <h3 className="text-3xl font-black text-white mb-2 uppercase tracking-tighter">Coordinate Mismatch</h3>
+                <p className="text-stone-500 max-w-sm mx-auto font-medium">No trials identified with current search filters. Check system logs or reset reconnaissance parameters.</p>
+                <button
+                  onClick={() => { setSearchTerm(''); setDifficultyFilter(''); setTerrainFilter(''); }}
+                  className="mt-8 text-orange-500 font-black uppercase tracking-widest text-[10px] border-b-2 border-orange-500/30 pb-1 hover:text-orange-400 transition-all"
+                >
+                  RECALIBRATE SENSORS
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Modal: Route Detail Intel */}
+      {selectedRoute && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-300 overflow-y-auto">
+          <div className="bg-stone-900 border border-stone-800 rounded-[3rem] w-full max-w-4xl p-8 lg:p-12 relative shadow-[0_0_100px_rgba(0,0,0,0.8)] my-8">
+            <button onClick={() => setSelectedRoute(null)} className="absolute top-8 right-8 p-4 bg-stone-800 border border-stone-700 rounded-2xl text-stone-400 hover:text-white hover:border-stone-600 transition-all"><FaTimes /></button>
+
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div className="space-y-4">
+                <div className="inline-flex items-center space-x-3 text-orange-500 text-[10px] font-black uppercase tracking-widest">
+                  <FaBolt className="animate-pulse" />
+                  <span>Topographical Intelligence File</span>
+                </div>
+                <h2 className="text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter leading-none">{selectedRoute.name}</h2>
+              </div>
+              <div className="flex gap-3">
+                <div className="px-5 py-3 bg-stone-950 border border-stone-800 rounded-2xl flex items-center space-x-3">
+                  <span className="text-xl">{terrainIcons[selectedRoute.terrain]}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-stone-100">{selectedRoute.terrain}</span>
+                </div>
+                <div className={`px-5 py-3 bg-stone-950 border border-stone-800 rounded-2xl flex items-center space-x-3`}>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-orange-500">RANK: {selectedRoute.difficulty}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+              <div className="lg:col-span-12">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+                  {[
+                    { label: 'DISTANCE', val: `${selectedRoute.distance} KM`, icon: FaRoute },
+                    { label: 'EST. TIME', val: selectedRoute.estimatedTime, icon: FaClock },
+                    { label: 'VEHICLE CLASS', val: selectedRoute.requiredVehicleType.toUpperCase(), icon: FaTools },
+                    { label: 'MAX UNITS', val: selectedRoute.maxParticipants, icon: FaUsers }
+                  ].map(spec => (
+                    <div key={spec.label} className="p-6 bg-stone-950 border border-stone-800 rounded-[2rem] flex flex-col items-center">
+                      <spec.icon className="text-orange-500 mb-3 text-xl" />
+                      <span className="text-[9px] font-black text-stone-500 uppercase tracking-widest mb-1">{spec.label}</span>
+                      <span className="text-lg font-black text-white tracking-tighter">{spec.val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lg:col-span-8 space-y-10">
+                <section className="space-y-4">
+                  <h3 className="text-xs font-black text-orange-500 uppercase tracking-[0.3em]">Scouting Narrative</h3>
+                  <p className="text-stone-400 text-lg font-medium leading-relaxed">{selectedRoute.description}</p>
+                </section>
+
+                {selectedRoute.waypoints && selectedRoute.waypoints.length > 0 && (
+                  <section className="space-y-4">
+                    <h3 className="text-xs font-black text-orange-500 uppercase tracking-[0.3em]">Primary Waypoints</h3>
+                    <div className="space-y-3">
+                      {selectedRoute.waypoints.map((wp, i) => (
+                        <div key={i} className="group p-5 bg-stone-950 border border-stone-800 rounded-[1.5rem] flex items-center space-x-6 hover:border-stone-700 transition-all">
+                          <div className="w-10 h-10 bg-stone-900 border border-stone-800 rounded-xl flex items-center justify-center text-[10px] font-black text-orange-500">
+                            {i + 1}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-black text-white uppercase tracking-widest">{wp.name}</h4>
+                            {wp.description && <p className="text-[10px] text-stone-500 font-bold uppercase tracking-tight">{wp.description}</p>}
+                            {wp.coordinates && <p className="text-[8px] text-stone-700 font-black mt-1">COORD: {wp.coordinates.lat}, {wp.coordinates.lng}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+
+              <aside className="lg:col-span-4 space-y-8">
+                <section className="p-8 bg-stone-950 border border-stone-800 rounded-[2.5rem]">
+                  <h3 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mb-6">Course Navigation</h3>
+                  <div className="space-y-8">
+                    <div className="relative pl-6 border-l-2 border-stone-800 py-2">
+                      <div className="absolute top-0 left-[-5px] w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <p className="text-[9px] font-black text-stone-500 uppercase tracking-widest mb-1">DEPARTURE</p>
+                      <p className="text-xs font-black text-white uppercase tracking-widest">{selectedRoute.startLocation}</p>
+                    </div>
+                    <div className="relative pl-6 border-l-2 border-stone-800 py-2">
+                      <div className="absolute bottom-0 left-[-5px] w-2 h-2 bg-stone-100 rounded-full"></div>
+                      <p className="text-[9px] font-black text-stone-500 uppercase tracking-widest mb-1">DESTINATION</p>
+                      <p className="text-xs font-black text-white uppercase tracking-widest">{selectedRoute.endLocation}</p>
+                    </div>
+                  </div>
+                </section>
+
+                {selectedRoute.safetyNotes && (
+                  <section className="p-8 bg-red-500/5 border border-red-500/20 rounded-[2.5rem]">
+                    <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.3em] mb-4 flex items-center space-x-2">
+                      <FaExclamationTriangle />
+                      <span>Hazard Analysis</span>
+                    </h3>
+                    <p className="text-xs font-bold text-red-200 uppercase tracking-widest leading-relaxed">{selectedRoute.safetyNotes}</p>
+                  </section>
+                )}
+              </aside>
+            </div>
+
+            <div className="mt-12 pt-10 border-t border-stone-800 flex justify-end">
+              <button
+                onClick={() => setSelectedRoute(null)}
+                className="px-12 h-16 bg-stone-100 text-black font-black text-xs uppercase tracking-[0.3em] rounded-2xl hover:bg-orange-500 transition-all active:scale-95"
+              >
+                CLOSE INTELLIGENCE FILE
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Support FAB */}
+      <div className="fixed bottom-8 right-8 z-[100]">
+        <button className="w-16 h-16 bg-white text-black rounded-[1.5rem] shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group">
+          <FaBell className="text-xl group-hover:rotate-12 transition-transform" />
+        </button>
+      </div>
     </div>
   );
 };

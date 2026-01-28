@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, NavLink, Outlet } from 'react-router-dom'
-import { FaSignOutAlt, FaUsers, FaCalendarAlt, FaChartLine, FaMapMarkedAlt, FaCog, FaBars, FaUser, FaRoute, FaTrophy, FaArrowUp, FaClock, FaCheckCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { FaSignOutAlt, FaUsers, FaCalendarAlt, FaChartLine, FaMapMarkedAlt, FaCog, FaBars, FaUser, FaRoute, FaTrophy, FaArrowUp, FaClock, FaCheckCircle, FaChevronLeft, FaChevronRight, FaShoppingCart } from 'react-icons/fa'
 import axios from 'axios'
 import API_BASE_URL from './config/api'
 
@@ -26,17 +26,17 @@ export function DashboardOverview() {
       // Fetch ALL events for calendar display (not just upcoming)
       const eventsRes = await axios.get(`${API_BASE_URL}/api/events`, config)
       const allEventsData = eventsRes.data.events || []
-      
+
       // Pass all events to calendar - let calendar handle month filtering
       setEvents(allEventsData)
 
       // Fetch upcoming events for stats calculation
       const upcomingEventsRes = await axios.get(`${API_BASE_URL}/api/events/upcoming`, config).catch(() => null)
       const upcomingEventsData = upcomingEventsRes?.data || []
-      
+
       // Fetch dashboard stats from admin endpoint
       const statsRes = await axios.get(`${API_BASE_URL}/api/admin/stats`, config).catch(() => null)
-      
+
       if (statsRes?.data) {
         setStats(statsRes.data)
       } else {
@@ -60,7 +60,7 @@ export function DashboardOverview() {
           }))
           .sort((a, b) => b.participants - a.participants)
           .slice(0, 3)
-        
+
         setTopPerformers(performers.length > 0 ? performers : [])
       } else {
         setTopPerformers([])
@@ -207,7 +207,7 @@ export function DashboardOverview() {
             <p className="text-sm text-slate-400 mt-1">Next scheduled adventures</p>
           </div>
         </div>
-        
+
         <div className="space-y-3">
           {events.length > 0 ? (
             events
@@ -351,9 +351,9 @@ function StatusItem({ label, status }) {
     error: { dot: 'bg-red-500', text: 'text-red-400', label: 'Error' },
     disconnected: { dot: 'bg-red-500', text: 'text-red-400', label: 'Disconnected' }
   }
-  
+
   const config = statusColors[status] || { dot: 'bg-yellow-500', text: 'text-yellow-400', label: status }
-  
+
   return (
     <div className="flex items-center justify-between">
       <span className="text-sm text-slate-300">{label}</span>
@@ -384,11 +384,11 @@ function ActionButton({ icon, title, description }) {
 function EventsCalendar({ events }) {
   const [hoveredDate, setHoveredDate] = useState(null)
   const today = new Date()
-  
+
   // State for current viewing month/year
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
-  
+
   // Navigation functions
   const goToPreviousMonth = () => {
     if (currentMonth === 0) {
@@ -398,7 +398,7 @@ function EventsCalendar({ events }) {
       setCurrentMonth(currentMonth - 1)
     }
   }
-  
+
   const goToNextMonth = () => {
     if (currentMonth === 11) {
       setCurrentMonth(0)
@@ -407,17 +407,17 @@ function EventsCalendar({ events }) {
       setCurrentMonth(currentMonth + 1)
     }
   }
-  
+
   // Filter events for current viewing month
   const currentMonthEvents = events.filter(event => {
     const eventDate = new Date(event.date)
     return eventDate.getMonth() === currentMonth && eventDate.getFullYear() === currentYear
   })
-  
+
   // Get first day of month and number of days
   const firstDay = new Date(currentYear, currentMonth, 1).getDay()
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-  
+
   // Create map of dates to events for current month
   const eventsByDate = {}
   currentMonthEvents.forEach(event => {
@@ -428,16 +428,16 @@ function EventsCalendar({ events }) {
     }
     eventsByDate[dateKey].push(event)
   })
-  
+
   // Get events for a specific date
   const getEventsForDate = (day) => eventsByDate[day] || []
-  
+
   // Month name
   const monthName = new Date(currentYear, currentMonth).toLocaleString('en-US', { month: 'long', year: 'numeric' })
-  
+
   // Days of week header
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  
+
   // Create array of calendar days (including empty cells for alignment)
   const calendarDays = []
   for (let i = 0; i < firstDay; i++) {
@@ -446,7 +446,7 @@ function EventsCalendar({ events }) {
   for (let day = 1; day <= daysInMonth; day++) {
     calendarDays.push(day)
   }
-  
+
   return (
     <div className="lg:col-span-2 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-7 border border-slate-700/50 overflow-hidden">
       <div className="flex items-center justify-between mb-6">
@@ -497,7 +497,7 @@ function EventsCalendar({ events }) {
             const dayEvents = day ? getEventsForDate(day) : []
             const hasEvents = dayEvents.length > 0
             const isToday = day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()
-            
+
             return (
               <div
                 key={idx}
@@ -612,6 +612,7 @@ function Dashboard() {
     { to: '/dashboard/events', icon: <FaCalendarAlt />, label: 'Events' },
     { to: '/dashboard/participants', icon: <FaUsers />, label: 'Participants' },
     { to: '/dashboard/routes', icon: <FaRoute />, label: 'Trail Routes' },
+    { to: '/dashboard/ecommerce', icon: <FaShoppingCart />, label: 'E-commerce' },
     { to: '/settings', icon: <FaCog />, label: 'Settings' },
     { to: '/dashboard/profile', icon: <FaUser />, label: 'Profile' }
   ]
@@ -619,9 +620,8 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white flex">
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800 transition-all duration-300 z-20 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-      }`}>
+      <div className={`fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-800 transition-all duration-300 z-20 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}>
         {/* Logo Section */}
         <div className="p-6 flex items-center space-x-3 border-b border-slate-800">
           <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600">
@@ -643,10 +643,9 @@ function Dashboard() {
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
-                  isActive
-                    ? 'bg-orange-600/20 text-orange-400 border border-orange-500/50 font-semibold'
-                    : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
+                `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${isActive
+                  ? 'bg-orange-600/20 text-orange-400 border border-orange-500/50 font-semibold'
+                  : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
                 }`
               }
             >

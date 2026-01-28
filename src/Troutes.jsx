@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
+import {
   FaMapMarkedAlt,
   FaClock,
   FaRoad,
@@ -19,8 +19,11 @@ import {
   FaTrophy,
   FaBell,
   FaBars,
-  FaTimes
+  FaTimes,
+  FaCompass,
+  FaShoppingCart
 } from 'react-icons/fa';
+
 import API_BASE_URL from './config/api';
 
 const Routes = () => {
@@ -80,12 +83,17 @@ const Routes = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setRoutes(data);
       } else {
-        console.error('Failed to fetch routes');
+        console.error('Failed to fetch routes', response.status);
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+        }
       }
     } catch (error) {
       console.error('Error fetching routes:', error);
@@ -159,7 +167,12 @@ const Routes = () => {
         const data = await response.json();
         setProfileData(data);
       } else {
-        console.error('Failed to fetch profile data');
+        console.error('Failed to fetch profile data', response.status);
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+        }
       }
     } catch (error) {
       console.error('Error fetching profile data:', error);
@@ -248,8 +261,8 @@ const Routes = () => {
     const directionsUrl = startLatLng
       ? `https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${startLatLng[0]},${startLatLng[1]}`
       : (viewingRoute?.startLocation
-          ? `https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${encodeURIComponent(viewingRoute.startLocation)}`
-          : null);
+        ? `https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${encodeURIComponent(viewingRoute.startLocation)}`
+        : null);
 
     if (directionsUrl) {
       // Indicate clickability
@@ -295,146 +308,115 @@ const Routes = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
       {/* Navigation Header */}
-      <nav className="relative z-50 bg-gradient-to-r from-gray-900/95 to-gray-800/90 border-b border-gray-700/50 sticky top-0 backdrop-blur-xl">
+      <nav className="relative z-50 bg-stone-900/80 border-b border-stone-800/50 sticky top-0 backdrop-blur-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
-            <div className="flex items-center space-x-4 group">
+            <div className="flex items-center space-x-4 group cursor-pointer" onClick={() => navigate('/home')}>
               <div className="relative">
-                <FaMapMarkedAlt className="text-orange-500 text-2xl md:text-3xl transform group-hover:scale-110 transition-all duration-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.5)]" />
-                <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
+                <FaMapMarkedAlt className="text-orange-500 text-2xl md:text-3xl transform group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-xl animate-pulse"></div>
               </div>
-              <span className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 drop-shadow-2xl tracking-tight">
+              <span className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 tracking-tighter">
                 OffroadX
               </span>
             </div>
 
-            {/* Desktop Navigation Links */}
-            <div className="hidden md:flex items-center space-x-10">
-              <Link to="/events" className="text-gray-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
-                <FaCalendarAlt className="text-lg" />
-                <span>Events</span>
-              </Link>
-              <Link to="/routes" className="text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
-                <FaRoute className="text-lg" />
-                <span>Routes</span>
-              </Link>
-              <Link to="/achievements" className="text-gray-300 hover:text-orange-400 transition-all duration-300 flex items-center space-x-2 font-semibold tracking-wide">
-                <FaTrophy className="text-lg" />
-                <span>Achievements</span>
-              </Link>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              {[
+                { to: '/home', icon: FaCompass, label: 'Home' },
+                { to: '/events', icon: FaCalendarAlt, label: 'Events' },
+                { to: '/routes', icon: FaRoute, label: 'Routes', active: true },
+                { to: '/achievements', icon: FaTrophy, label: 'Achievements' },
+                { to: '/ecommerce', icon: FaShoppingCart, label: 'Shop' }
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  className={`relative px-3 py-2 text-sm font-bold tracking-widest uppercase transition-all duration-300 flex items-center space-x-2 group ${item.active ? 'text-orange-500' : 'text-stone-400 hover:text-white'}`}
+                >
+                  <item.icon className="text-lg" />
+                  <span>{item.label}</span>
+                  {item.active && (
+                    <div className="absolute -bottom-1 left-3 right-3 h-0.5 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.8)]"></div>
+                  )}
+                </Link>
+              ))}
             </div>
 
-            {/* Desktop User Menu */}
+            {/* User Menu */}
             <div className="hidden md:flex items-center space-x-6">
-              <button className="text-gray-300 hover:text-orange-400 transition-all duration-300 relative">
-                <FaBell className="text-2xl" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+              <button className="text-stone-300 hover:text-orange-400 relative transition-colors">
+                <FaBell className="text-xl" />
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
               </button>
-              <div className="flex items-center space-x-4">
-                <button onClick={handleProfileClick} className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
+              <div className="flex items-center p-1.5 bg-stone-800/50 rounded-2xl border border-stone-700/50 backdrop-blur-sm">
+                <button onClick={handleProfileClick} className="flex items-center space-x-3 pr-4 pl-2 hover:opacity-80 transition-opacity">
                   {profileData?.profilePhotoUrl ? (
-                    <img
-                      src={profileData.profilePhotoUrl}
-                      alt="Profile"
-                      className="w-12 h-12 rounded-2xl object-cover border-2 border-orange-500/50 shadow-[0_8px_30px_rgba(249,115,22,0.3)]"
-                    />
+                    <img src={profileData.profilePhotoUrl} alt="Profile" className="w-9 h-9 rounded-xl object-cover border border-orange-500/30" />
                   ) : (
-                    <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-[0_8px_30px_rgba(249,115,22,0.3)]">
-                      <FaUser className="text-white text-lg" />
+                    <div className="w-9 h-9 bg-orange-600 rounded-xl flex items-center justify-center">
+                      <FaUser className="text-white text-sm" />
                     </div>
                   )}
-                  <div>
-                    <p className="text-lg font-bold text-white tracking-wide">{user.firstName} {user.secondName}</p>
-                    <p className="text-sm text-gray-400">Click to view profile</p>
-                  </div>
+                  <span className="font-bold text-sm tracking-tight">{user.firstName}</span>
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-300 hover:text-red-400 transition-all duration-300 p-2 rounded-xl hover:bg-red-500/10"
-                  title="Logout"
-                >
-                  <FaSignOutAlt className="text-xl" />
+                <div className="w-px h-6 bg-stone-700 mx-2"></div>
+                <button onClick={handleLogout} className="p-2 text-stone-400 hover:text-red-400 transition-colors">
+                  <FaSignOutAlt />
                 </button>
               </div>
             </div>
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-4">
-              <button className="text-gray-300 hover:text-orange-400 transition-all duration-300 relative">
-                <FaBell className="text-xl" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-              </button>
-              <button onClick={handleProfileClick} className="hover:opacity-80 transition-opacity">
-                {profileData?.profilePhotoUrl ? (
-                  <img
-                    src={profileData.profilePhotoUrl}
-                    alt="Profile"
-                    className="w-10 h-10 rounded-xl object-cover border-2 border-orange-500/50 shadow-[0_8px_30px_rgba(249,115,22,0.3)]"
-                  />
-                ) : (
-                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-[0_8px_30px_rgba(249,115,22,0.3)]">
-                    <FaUser className="text-white text-sm" />
-                  </div>
-                )}
-              </button>
-              <button
-                onClick={toggleMobileMenu}
-                className="text-stone-300 hover:text-orange-400 transition-all duration-300 p-2"
-              >
+              <button onClick={toggleMobileMenu} className="text-stone-300 p-2 bg-stone-800/50 rounded-xl border border-stone-700/50">
                 {isMobileMenuOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
               </button>
             </div>
           </div>
-
-          {/* Mobile Menu */}
-          {isMobileMenuOpen && (
-            <div className="md:hidden absolute top-full left-0 right-0 bg-gradient-to-br from-stone-900/98 to-neutral-900/95 border-b border-stone-700/50 backdrop-blur-xl shadow-2xl">
-              <div className="px-4 py-6 space-y-4">
-                <Link 
-                  to="/events" 
-                  className="flex items-center space-x-3 text-stone-300 hover:text-orange-400 transition-all duration-300 py-3 px-4 rounded-xl hover:bg-stone-800/50"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <FaCalendarAlt className="text-lg" />
-                  <span className="font-semibold">Events</span>
-                </Link>
-                <Link 
-                  to="/routes" 
-                  className="flex items-center space-x-3 text-orange-400 transition-all duration-300 py-3 px-4 rounded-xl bg-orange-500/10"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <FaRoute className="text-lg" />
-                  <span className="font-semibold">Routes</span>
-                </Link>
-                <Link 
-                  to="/achievements" 
-                  className="flex items-center space-x-3 text-stone-300 hover:text-orange-400 transition-all duration-300 py-3 px-4 rounded-xl hover:bg-stone-800/50"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <FaTrophy className="text-lg" />
-                  <span className="font-semibold">Achievements</span>
-                </Link>
-                <div className="border-t border-stone-700/50 pt-4 mt-4">
-                  <div className="flex items-center space-x-3 py-3 px-4">
-                    <div className="text-stone-300">
-                      <p className="font-bold text-white">{user.firstName} {user.secondName}</p>
-                      <p className="text-sm text-stone-400">Welcome back!</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-3 text-red-400 hover:text-red-300 transition-all duration-300 py-3 px-4 rounded-xl hover:bg-red-500/10 w-full"
-                  >
-                    <FaSignOutAlt className="text-lg" />
-                    <span className="font-semibold">Logout</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Mobile Menu Sidebar */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl animate-in fade-in duration-300 p-6 flex flex-col">
+            <div className="flex justify-between items-center mb-12">
+              <div className="flex items-center space-x-3">
+                <FaMapMarkedAlt className="text-orange-500 text-3xl" />
+                <span className="text-2xl font-black text-white tracking-widest uppercase">OFFROADX</span>
+              </div>
+              <button onClick={toggleMobileMenu} className="p-3 bg-stone-800 rounded-2xl border border-stone-700 text-white">
+                <FaTimes className="text-xl" />
+              </button>
+            </div>
+            <div className="space-y-4 flex-1 overflow-y-auto">
+              {[
+                { to: '/home', icon: FaCompass, label: 'Home' },
+                { to: '/events', icon: FaCalendarAlt, label: 'Events' },
+                { to: '/routes', icon: FaRoute, label: 'Routes', active: true },
+                { to: '/achievements', icon: FaTrophy, label: 'Achievements' },
+                { to: '/ecommerce', icon: FaShoppingCart, label: 'Shop' }
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  className={`flex items-center space-x-4 p-5 rounded-2xl text-lg font-bold transition-all ${item.active ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-stone-400 bg-stone-900/50 border border-stone-800/50 hover:bg-stone-800'}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </div>
+            <button onClick={handleLogout} className="mt-8 flex items-center justify-center space-x-3 p-6 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl font-bold">
+              <FaSignOutAlt />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        )}
       </nav>
+
 
       {/* Header */}
       <div className="bg-gradient-to-r from-gray-900/95 to-gray-800/90 border-b border-gray-700/50 backdrop-blur-xl z-40">
@@ -513,12 +495,11 @@ const Routes = () => {
                   <div className="flex-1">
                     <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300 mb-3 group-hover:from-orange-200 group-hover:to-white transition-all duration-500">{route.name}</h3>
                     <div className="flex items-center gap-3 mb-2">
-                      <span className={`px-4 py-2 rounded-full text-sm font-bold text-white bg-gradient-to-r ${
-                        route.difficulty === 'Beginner' ? 'from-green-500 to-green-600' :
+                      <span className={`px-4 py-2 rounded-full text-sm font-bold text-white bg-gradient-to-r ${route.difficulty === 'Beginner' ? 'from-green-500 to-green-600' :
                         route.difficulty === 'Intermediate' ? 'from-yellow-500 to-yellow-600' :
-                        route.difficulty === 'Advanced' ? 'from-orange-500 to-orange-600' :
-                        'from-red-500 to-red-600'
-                      } shadow-lg`}>
+                          route.difficulty === 'Advanced' ? 'from-orange-500 to-orange-600' :
+                            'from-red-500 to-red-600'
+                        } shadow-lg`}>
                         {route.difficulty}
                       </span>
                       <span className="text-gray-300 text-base font-medium">
@@ -601,8 +582,8 @@ const Routes = () => {
             </div>
             <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-400 to-gray-600 mb-6">No routes found</h3>
             <p className="text-gray-400 text-lg mb-8 max-w-md mx-auto leading-relaxed">
-              {searchTerm || difficultyFilter || terrainFilter 
-                ? "Try adjusting your search criteria or filters to discover more routes" 
+              {searchTerm || difficultyFilter || terrainFilter
+                ? "Try adjusting your search criteria or filters to discover more routes"
                 : "No trail routes are currently available. Check back soon for new adventures!"}
             </p>
             {(searchTerm || difficultyFilter || terrainFilter) && (
@@ -625,12 +606,11 @@ const Routes = () => {
               <div>
                 <h2 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-orange-600 mb-4">{viewingRoute.name}</h2>
                 <div className="flex items-center gap-4">
-                  <span className={`px-6 py-3 rounded-full text-base font-bold text-white bg-gradient-to-r ${
-                    viewingRoute.difficulty === 'Beginner' ? 'from-green-500 to-green-600' :
+                  <span className={`px-6 py-3 rounded-full text-base font-bold text-white bg-gradient-to-r ${viewingRoute.difficulty === 'Beginner' ? 'from-green-500 to-green-600' :
                     viewingRoute.difficulty === 'Intermediate' ? 'from-yellow-500 to-yellow-600' :
-                    viewingRoute.difficulty === 'Advanced' ? 'from-orange-500 to-orange-600' :
-                    'from-red-500 to-red-600'
-                  } shadow-lg`}>
+                      viewingRoute.difficulty === 'Advanced' ? 'from-orange-500 to-orange-600' :
+                        'from-red-500 to-red-600'
+                    } shadow-lg`}>
                     {viewingRoute.difficulty}
                   </span>
                   <span className="text-gray-200 text-xl font-medium">
@@ -645,7 +625,7 @@ const Routes = () => {
                 <FaTimes />
               </button>
             </div>
-            
+
             <div className="space-y-8">
               <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
                 <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
@@ -656,7 +636,7 @@ const Routes = () => {
                 </h3>
                 <p className="text-gray-200 leading-relaxed text-lg">{viewingRoute.description}</p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 rounded-2xl p-6 border border-gray-600/30">
@@ -741,15 +721,14 @@ const Routes = () => {
                   <p className="text-yellow-200 text-lg leading-relaxed">{viewingRoute.safetyNotes}</p>
                 </div>
               )}
-              
+
               <div className="flex gap-6 pt-8 border-t border-gray-600/50">
                 <button
                   onClick={() => toggleBookmark(viewingRoute._id)}
-                  className={`flex-1 py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-3 text-lg shadow-xl ${
-                    bookmarkedRoutes.includes(viewingRoute._id)
-                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-orange-500/25'
-                      : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200'
-                  }`}
+                  className={`flex-1 py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-3 text-lg shadow-xl ${bookmarkedRoutes.includes(viewingRoute._id)
+                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-orange-500/25'
+                    : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200'
+                    }`}
                 >
                   {bookmarkedRoutes.includes(viewingRoute._id) ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
                   {bookmarkedRoutes.includes(viewingRoute._id) ? 'Bookmarked' : 'Bookmark Route'}
