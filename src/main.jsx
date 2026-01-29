@@ -22,7 +22,13 @@ import UserRoutes from './UserRoutes.jsx'
 import Troutes from './Troutes.jsx'
 import Achievements from './Achievements.jsx'
 import AdminEcommerce from './AdminEcommerce.jsx'
-import UserEcommerce from './UserEcommerce.jsx'
+import Notifications from './Notifications.jsx'
+
+// E-commerce Shop Components
+import ShopLayout from './ecommerce/ShopLayout.jsx'
+import ShopHome from './ecommerce/ShopHome.jsx'
+import ShopExplore from './ecommerce/ShopExplore.jsx'
+import ShopOrders from './ecommerce/ShopOrders.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -74,9 +80,20 @@ createRoot(document.getElementById('root')).render(
           </ProtectedRoute>
         } />
 
+        {/* E-commerce with nested routes */}
         <Route path="/ecommerce" element={
           <ProtectedRoute requiredRole="user">
-            <UserEcommerce />
+            <ShopLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<ShopHome />} />
+          <Route path="explore" element={<ShopExplore />} />
+          <Route path="orders" element={<ShopOrders />} />
+        </Route>
+
+        <Route path="/notifications" element={
+          <ProtectedRoute requiredRole="user">
+            <Notifications />
           </ProtectedRoute>
         } />
 

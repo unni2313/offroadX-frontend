@@ -23,6 +23,7 @@ import {
   FaCompass,
   FaShoppingCart
 } from 'react-icons/fa';
+import NotificationBell from './components/NotificationBell';
 
 import API_BASE_URL from './config/api';
 
@@ -347,10 +348,7 @@ const Routes = () => {
 
             {/* User Menu */}
             <div className="hidden md:flex items-center space-x-6">
-              <button className="text-stone-300 hover:text-orange-400 relative transition-colors">
-                <FaBell className="text-xl" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-              </button>
+              <NotificationBell />
               <div className="flex items-center p-1.5 bg-stone-800/50 rounded-2xl border border-stone-700/50 backdrop-blur-sm">
                 <button onClick={handleProfileClick} className="flex items-center space-x-3 pr-4 pl-2 hover:opacity-80 transition-opacity">
                   {profileData?.profilePhotoUrl ? (

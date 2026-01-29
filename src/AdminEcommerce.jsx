@@ -10,6 +10,7 @@ const AdminEcommerce = () => {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -43,6 +44,27 @@ const AdminEcommerce = () => {
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formDataUpload = new FormData();
+        formDataUpload.append('image', file);
+
+        try {
+            setUploading(true);
+            const res = await axios.post(`${API_BASE_URL}/api/ecommerce/upload`, formDataUpload, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setFormData({ ...formData, image: res.data.url });
+        } catch (err) {
+            console.error('Upload failed:', err);
+            alert('Image upload failed. Please try again.');
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -438,16 +460,52 @@ const AdminEcommerce = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-400">Image URL</label>
-                                <input
-                                    type="text"
-                                    name="image"
-                                    value={formData.image}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-orange-500"
-                                    placeholder="https://example.com/image.jpg"
-                                />
+                            <div className="space-y-4 py-2">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-20 h-20 rounded-xl bg-slate-800 border-2 border-dashed border-slate-700 flex items-center justify-center overflow-hidden">
+                                        {formData.image ? (
+                                            <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <FaPlus className="text-slate-600" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <label className="text-sm font-semibold text-slate-400 block mb-1">Product Image</label>
+                                        <div className="flex gap-2">
+                                            <label className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-bold cursor-pointer transition-all hover:bg-slate-700 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                                <FaPlus size={12} className="text-orange-500" />
+                                                <span>{uploading ? 'Uploading...' : 'Upload Image'}</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleFileUpload}
+                                                    className="hidden"
+                                                    disabled={uploading}
+                                                />
+                                            </label>
+                                            {formData.image && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, image: '' })}
+                                                    className="p-2.5 bg-red-500/10 text-red-500 rounded-xl border border-red-500/20 hover:bg-red-500/20 transition-all"
+                                                >
+                                                    <FaTrash size={12} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-400">Or Image URL</label>
+                                    <input
+                                        type="text"
+                                        name="image"
+                                        value={formData.image}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-orange-500"
+                                        placeholder="https://example.com/image.jpg"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-slate-400">Description</label>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from './config/api';
+import NotificationBell from './components/NotificationBell';
 import { showSuccess } from './utils/sweetAlert';
 import {
     FaShoppingCart,
@@ -155,8 +156,8 @@ const UserEcommerce = () => {
                             ))}
                         </div>
 
-                        {/* User Menu */}
                         <div className="hidden md:flex items-center space-x-6">
+                            <NotificationBell />
                             <div className="flex items-center p-1.5 bg-stone-800/50 rounded-2xl border border-stone-700/50 backdrop-blur-sm">
                                 <button onClick={handleProfileClick} className="flex items-center space-x-3 pr-4 pl-2 hover:opacity-80 transition-opacity">
                                     {profileData?.profilePhotoUrl ? (
